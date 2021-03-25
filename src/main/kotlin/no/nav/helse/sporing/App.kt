@@ -20,6 +20,7 @@ import kotliquery.using
 import no.nav.helse.rapids_rivers.*
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
@@ -28,6 +29,8 @@ private val objectMapper = jacksonObjectMapper()
     .registerModule(JavaTimeModule())
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+
+private val log = LoggerFactory.getLogger("no.nav.helse.sporing.App")
 
 fun main() {
     val env = System.getenv()
@@ -53,6 +56,7 @@ fun main() {
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
         .withKtorModule {
             install(ContentNegotiation) { register(ContentType.Application.Json, JacksonConverter(objectMapper)) }
+            requestResponseTracing(log)
             routing {
                 get("/tilstandsmaskin") {
                     call.respond(TilstandsendringerResponse(repo.tilstandsendringer()))
