@@ -83,6 +83,4 @@ fun main() {
         .start()
 }
 
-internal class TilstandsendringerResponse(
-    private val tilstandsendringer: List<PostgresRepository.TilstandsendringDto>
-)
+internal class TilstandsendringerResponse(val tilstandsendringer: List<PostgresRepository.TilstandsendringDto>)
