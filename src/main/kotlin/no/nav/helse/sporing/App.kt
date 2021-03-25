@@ -18,7 +18,7 @@ fun main() {
     val env = System.getenv()
 
     val hikariConfig = HikariConfig().apply {
-        jdbcUrl = env.getValue("NAIS_DATABASE_SPORING_SPORING_URL")
+        jdbcUrl = "jdbc:${env.getValue("NAIS_DATABASE_SPORING_SPORING_URL")}"
         maximumPoolSize = 3
         minimumIdle = 1
         idleTimeout = 10001
