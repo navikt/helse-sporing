@@ -14,11 +14,12 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
+private fun fixJdbcUrl(url: String) =
+    "jdbc:" + url.removePrefix("jdbc:").replace("postgres://", "postgresql://")
 fun main() {
     val env = System.getenv()
-
     val hikariConfig = HikariConfig().apply {
-        jdbcUrl = "jdbc:${env.getValue("NAIS_DATABASE_SPORING_SPORING_URL")}"
+        jdbcUrl = fixJdbcUrl(env.getValue("NAIS_DATABASE_SPORING_SPORING_URL"))
         maximumPoolSize = 3
         minimumIdle = 1
         idleTimeout = 10001
