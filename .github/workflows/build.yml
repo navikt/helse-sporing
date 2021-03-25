@@ -5,7 +5,7 @@ on:
       - main
 env:
   DOCKER_REGISTRY: gchr.io
-  DOCKER_IMAGE_NAME: ${{ github.repository }}/sporing
+  DOCKER_IMAGE_NAME: ${{ github.repository_owner }}/sporing:${{ github.sha }}
   TEAM: tbd
 
 jobs:
@@ -42,7 +42,7 @@ jobs:
         with:
           context: "."
           push: true
-          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          tags: ${{ env.DOCKER_IMAGE_NAME }}
           pull: true
   deploy:
     needs: build
@@ -60,7 +60,7 @@ jobs:
         uses: nais/deploy/actions/deploy@v1
         env:
           RESOURCE: config/nais.yml
-          IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}
           CLUSTER: ${{ matrix.cluster }}
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           VAR: team=${{ env.TEAM }},app=sporing
