@@ -10,6 +10,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.jackson.*
 import io.ktor.response.*
@@ -20,6 +21,7 @@ import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.time.LocalDateTime
+import java.util.*
 import javax.sql.DataSource
 
 private val objectMapper = jacksonObjectMapper()
@@ -59,6 +61,16 @@ fun main() {
                 get("/tilstandsmaskin") {
                     withContext(Dispatchers.IO) {
                         call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer()))
+                    }
+                }
+                get("/tilstandsmaskin/{vedtaksperiodeId}") {
+                    withContext(Dispatchers.IO) {
+                        val vedtaksperiodeId = try {
+                            call.parameters["vedtaksperiodeId"]?.let { UUID.fromString(it) } ?: return@withContext call.respond(BadRequest, "Please set vedtaksperiodeId in url")
+                        } catch (err: IllegalArgumentException) {
+                            return@withContext call.respond(BadRequest, "Please use a valid UUID")
+                        }
+                        call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(vedtaksperiodeId)))
                     }
                 }
             }

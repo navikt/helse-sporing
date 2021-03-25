@@ -40,6 +40,28 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): RapidsC
     }
 
     @Language("PostgreSQL")
+    private val selectVedtaksperiodeTransitionStatemenet = """
+        SELECT t.fra_tilstand, t.til_tilstand, t.fordi, vt.naar 
+        FROM vedtaksperiode_tilstandsendring vt
+        INNER JOIN tilstandsendring t ON vt.tilstandsendring_id = t.id
+        WHERE vt.vedtaksperiode_id = :vedtaksperiodeId
+        ORDER BY vt.naar ASC, vt.id ASC
+    """
+    internal fun tilstandsendringer(vedtaksperiodeId: UUID) = using(sessionOf(dataSource)) {
+        it.run(queryOf(selectVedtaksperiodeTransitionStatemenet, mapOf(
+            "vedtaksperiodeId" to vedtaksperiodeId
+        )).map { row ->
+            TilstandsendringDto(
+                fraTilstand = row.string("fra_tilstand"),
+                tilTilstand = row.string("til_tilstand"),
+                fordi = row.string("fordi"),
+                førstegang = row.localDateTime("naar"),
+                sistegang = row.localDateTime("naar")
+            )
+        }.asList)
+    }
+
+    @Language("PostgreSQL")
     private val insertTransitionStatement = """
         INSERT INTO tilstandsendring (fra_tilstand, til_tilstand, fordi, forste_gang, siste_gang)
         VALUES (:fraTilstand, :tilTilstand, :fordi, :naar, :naar)
