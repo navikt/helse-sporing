@@ -31,14 +31,18 @@ jobs:
             ${{ runner.os }}-gradle-caches-
       - name: test and build
         run: ./gradlew test build
-      - name: Build container image
-        uses: docker/build-push-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          registry: docker.pkg.github.com
-          repository: ${{ github.repository }}/sporing
-          tag_with_sha: true
+      - name: Build container image
+        uses: docker/build-push-action@v2
+        with:
+          context: "."
+          push: true
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          pull: true
   deploy:
     needs: build
     name: deploy
