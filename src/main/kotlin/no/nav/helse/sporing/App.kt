@@ -1,8 +1,18 @@
 package no.nav.helse.sporing
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.http.ContentType
+import io.ktor.jackson.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -16,6 +26,12 @@ import javax.sql.DataSource
 
 private fun fixJdbcUrl(url: String) =
     "jdbc:" + url.removePrefix("jdbc:").replace("postgres://", "postgresql://")
+
+private val objectMapper = jacksonObjectMapper()
+    .registerModule(JavaTimeModule())
+    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+
 fun main() {
     val env = System.getenv()
     val hikariConfig = HikariConfig().apply {
@@ -31,7 +47,14 @@ fun main() {
     val repo = PostgresRepository(dataSource)
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
-        .withKtorModule {  }
+        .withKtorModule {
+            install(ContentNegotiation) { register(ContentType.Application.Json, JacksonConverter(objectMapper)) }
+            routing {
+                get("/tilstandsmaskin") {
+                    call.respond(TilstandsendringerResponse(repo.tilstandsendringer()))
+                }
+            }
+        }
         .build()
         .apply {
             register(repo)
@@ -44,6 +67,17 @@ interface TilstandsendringRepository {
     fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime)
 }
 
+internal class TilstandsendringerResponse(
+    private val tilstandsendringer: List<TilstandsendringDto>
+)
+
+internal class TilstandsendringDto(
+    val fraTilstand: String,
+    val tilTilstand: String,
+    val fordi: String,
+    val førstegang: LocalDateTime,
+    val sistegang: LocalDateTime
+)
 internal class PostgresRepository(private val dataSource: DataSource): RapidsConnection.StatusListener, TilstandsendringRepository{
     override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime) {
         using(sessionOf(dataSource, returnGeneratedKey = true)) { session ->
@@ -52,6 +86,22 @@ internal class PostgresRepository(private val dataSource: DataSource): RapidsCon
                 kobleVedtaksperiodeTilTransisjon(txSession, meldingId, tilstandsendringId, vedtaksperiodeId, når)
             }
         }
+    }
+
+    @Language("PostgreSQL")
+    private val selectTransitionStatemenet = """
+        SELECT * FROM tilstandsendring
+    """
+    internal fun tilstandsendringer() = using(sessionOf(dataSource)) {
+        it.run(queryOf(selectTransitionStatemenet).map { row ->
+            TilstandsendringDto(
+                fraTilstand = row.string("fra_tilstand"),
+                tilTilstand = row.string("til_tilstand"),
+                fordi = row.string("fordi"),
+                førstegang = row.localDateTime("forste_gang"),
+                sistegang = row.localDateTime("siste_gang")
+            )
+        }.asList)
     }
 
     @Language("PostgreSQL")

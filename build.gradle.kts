@@ -13,6 +13,7 @@ repositories {
     maven("https://jitpack.io")
 }
 
+val ktorVersion = "1.5.0"
 val flywayVersion = "7.7.1"
 val hikariVersion = "4.0.3"
 val jacksonVersion = "2.12.0"
@@ -22,6 +23,7 @@ val junitJupiterVersion = "5.6.2"
 dependencies {
     api("com.github.navikt:rapids-and-rivers:1.f3e5de3")
 
+    implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("org.postgresql:postgresql:42.2.19")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
