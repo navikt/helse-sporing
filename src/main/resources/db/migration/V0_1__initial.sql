@@ -13,9 +13,10 @@ CREATE UNIQUE INDEX "idx_transisjon" ON tilstandsendring (fra_tilstand, til_tils
 CREATE TABLE vedtaksperiode_tilstandsendring
 (
     id                  BIGSERIAL PRIMARY KEY,
+    melding_id          UUID UNIQUE                             NOT NULL,
     vedtaksperiode_id   UUID                                    NOT NULL,
     tilstandsendring_id BIGINT REFERENCES tilstandsendring (id) NOT NULL,
     naar                TIMESTAMP                               NOT NULL
 );
 
-CREATE INDEX "idx_vedtaksperiode_id" ON vedtaksperiode_tilstandsendring(vedtaksperiode_id);
+CREATE INDEX "idx_vedtaksperiode_id" ON vedtaksperiode_tilstandsendring (vedtaksperiode_id);

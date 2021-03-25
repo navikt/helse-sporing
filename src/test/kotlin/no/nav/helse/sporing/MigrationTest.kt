@@ -54,9 +54,9 @@ internal class MigrationTest {
         val førstegang = LocalDateTime.now().minusDays(2)
         val andregang = LocalDateTime.now().minusDays(1)
         val tredjegang = LocalDateTime.now()
-        repository.lagre(vedtaksperiodeId1, "START", "MOTTATT_SYKMELDING", "Sykmelding", førstegang)
-        repository.lagre(vedtaksperiodeId2, "START", "MOTTATT_SYKMELDING", "Sykmelding", andregang)
-        repository.lagre(vedtaksperiodeId2, "MOTTATT_SYKMELDING", "START", "Sykmelding", tredjegang)
+        repository.lagre(UUID.randomUUID(), vedtaksperiodeId1, "START", "MOTTATT_SYKMELDING", "Sykmelding", førstegang)
+        repository.lagre(UUID.randomUUID(), vedtaksperiodeId2, "START", "MOTTATT_SYKMELDING", "Sykmelding", andregang)
+        repository.lagre(UUID.randomUUID(), vedtaksperiodeId2, "MOTTATT_SYKMELDING", "START", "Sykmelding", tredjegang)
 
         val tilstandsendringer = tilstandsendringer()
         assertEquals(2, tilstandsendringer.size)
@@ -64,6 +64,20 @@ internal class MigrationTest {
         assertTrue(tilstandsendringer.first().sistegang(andregang))
         assertTrue(tilstandsendringer.last().førstegang(tredjegang))
         assertTrue(tilstandsendringer.last().sistegang(tredjegang))
+    }
+
+    @Test
+    fun `oppretter ikke nye rader for samme melding`() {
+        val meldingId = UUID.randomUUID()
+        val førstegang = LocalDateTime.now().minusDays(2)
+        val andregang = LocalDateTime.now().minusDays(4)
+        repository.lagre(meldingId, UUID.randomUUID() , "START", "MOTTATT_SYKMELDING", "Sykmelding", førstegang)
+        repository.lagre(meldingId, UUID.randomUUID(), "START", "MOTTATT_SYKMELDING", "Sykmelding", andregang)
+
+        val tilstandsendringer = tilstandsendringer()
+        assertEquals(1, tilstandsendringer.size)
+        assertTrue(tilstandsendringer.first().førstegang(førstegang))
+        assertTrue(tilstandsendringer.first().sistegang(førstegang))
     }
 
     private fun tilstandsendringer() = using(sessionOf(dataSource)) {

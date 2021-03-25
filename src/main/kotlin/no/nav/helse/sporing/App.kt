@@ -40,15 +40,15 @@ fun main() {
 }
 
 interface TilstandsendringRepository {
-    fun lagre(vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime)
+    fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime)
 }
 
 internal class PostgresRepository(private val dataSource: DataSource): RapidsConnection.StatusListener, TilstandsendringRepository{
-    override fun lagre(vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime) {
+    override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime) {
         using(sessionOf(dataSource, returnGeneratedKey = true)) { session ->
             session.transaction { txSession ->
                 val tilstandsendringId = lagreTransisjon(txSession, fraTilstand, tilTilstand, fordi, når) ?: return@transaction
-                kobleVedtaksperiodeTilTransisjon(txSession, tilstandsendringId, vedtaksperiodeId, når)
+                kobleVedtaksperiodeTilTransisjon(txSession, meldingId, tilstandsendringId, vedtaksperiodeId, når)
             }
         }
     }
@@ -57,7 +57,10 @@ internal class PostgresRepository(private val dataSource: DataSource): RapidsCon
     private val insertTransitionStatement = """
         INSERT INTO tilstandsendring (fra_tilstand, til_tilstand, fordi, forste_gang, siste_gang)
         VALUES (:fraTilstand, :tilTilstand, :fordi, :naar, :naar)
-        ON CONFLICT(fra_tilstand, til_tilstand, fordi) DO UPDATE SET siste_gang = EXCLUDED.siste_gang
+        ON CONFLICT(fra_tilstand, til_tilstand, fordi) DO 
+        UPDATE 
+            SET siste_gang = EXCLUDED.siste_gang 
+            WHERE EXCLUDED.siste_gang >= tilstandsendring.siste_gang
         RETURNING id
     """
     private fun lagreTransisjon(session: Session, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime): Long? {
@@ -71,11 +74,13 @@ internal class PostgresRepository(private val dataSource: DataSource): RapidsCon
 
     @Language("PostgreSQL")
     private val insertVedtaksperiodeTransitionStatement = """
-        INSERT INTO vedtaksperiode_tilstandsendring (vedtaksperiode_id, tilstandsendring_id, naar)
-        VALUES (:vedtaksperiodeId, :tilstandsendringId, :naar)
+        INSERT INTO vedtaksperiode_tilstandsendring (melding_id, vedtaksperiode_id, tilstandsendring_id, naar)
+        VALUES (:meldingId, :vedtaksperiodeId, :tilstandsendringId, :naar)
+        ON CONFLICT (melding_id) DO NOTHING
     """
-    private fun kobleVedtaksperiodeTilTransisjon(session: Session, tilstandsendringId: Long, vedtaksperiodeId: UUID, når: LocalDateTime) {
+    private fun kobleVedtaksperiodeTilTransisjon(session: Session, meldingId: UUID, tilstandsendringId: Long, vedtaksperiodeId: UUID, når: LocalDateTime) {
         session.run(queryOf(insertVedtaksperiodeTransitionStatement, mapOf(
+            "meldingId" to meldingId,
             "vedtaksperiodeId" to vedtaksperiodeId,
             "tilstandsendringId" to tilstandsendringId,
             "naar" to når
@@ -96,14 +101,14 @@ private class Tilstandsendringer(rapidsConnection: RapidsConnection, repository:
         River(rapidsConnection)
             .validate {
                 it.demandValue("@event_name", "vedtaksperiode_endret")
-                it.requireKey()
-                it.requireKey("@forårsaket_av.event_name", "vedtaksperiodeId", "forrigeTilstand", "gjeldendeTilstand")
+                it.requireKey("@id", "@forårsaket_av.event_name", "vedtaksperiodeId", "forrigeTilstand", "gjeldendeTilstand")
                 it.interestedIn("@behov")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
             }
             .onSuccess { message, _ ->
                 val eventName = eventName(message)
                 repository.lagre(
+                    meldingId = UUID.fromString(message["@id"].asText()),
                     vedtaksperiodeId = UUID.fromString(message["vedtaksperiodeId"].asText()),
                     fraTilstand = message["forrigeTilstand"].asText(),
                     fordi = eventName,
