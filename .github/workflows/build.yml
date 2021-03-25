@@ -10,7 +10,6 @@ env:
 
 jobs:
   build:
-    needs: generate_vars
     name: build
     runs-on: ubuntu-latest
     steps:
