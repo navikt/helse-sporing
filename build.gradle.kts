@@ -22,6 +22,7 @@ val junitJupiterVersion = "5.6.2"
 dependencies {
     api("com.github.navikt:rapids-and-rivers:1.f3e5de3")
 
+    implementation("org.postgresql:postgresql:42.2.19")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
