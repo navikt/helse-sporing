@@ -16,36 +16,7 @@ import java.util.*
 import javax.sql.DataSource
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class MigrationTest {
-    private lateinit var dataSource: DataSource
-    private lateinit var repository: TilstandsendringRepository
-
-    @BeforeAll
-    fun createDatabase() {
-        val embeddedPostgres = EmbeddedPostgres.builder().start()
-        val hikariConfig = HikariConfig().apply {
-            jdbcUrl = embeddedPostgres!!.getJdbcUrl("postgres", "postgres")
-            maximumPoolSize = 3
-            minimumIdle = 1
-            idleTimeout = 10001
-            connectionTimeout = 1000
-            maxLifetime = 30001
-        }
-        dataSource = HikariDataSource(hikariConfig)
-        createSchema(dataSource)
-
-        repository = PostgresRepository { dataSource }
-    }
-
-    private fun createSchema(dataSource: DataSource) {
-        Flyway.configure().dataSource(dataSource).load().migrate()
-        using(sessionOf(dataSource)) { it.run(queryOf(truncateTablesSql).asExecute) }
-    }
-
-    @AfterEach
-    fun resetSchema() {
-        using(sessionOf(dataSource)) { it.run(queryOf("SELECT truncate_tables();").asExecute) }
-    }
+internal class MigrationTest : AbstractDatabaseTest() {
 
     @Test
     fun `oppretter tilstandsendringer`() {
@@ -80,7 +51,7 @@ internal class MigrationTest {
         assertTrue(tilstandsendringer.first().sistegang(førstegang))
     }
 
-    private fun tilstandsendringer() = using(sessionOf(dataSource)) {
+    private fun tilstandsendringer() = using(sessionOf(PostgresDatabase.connection())) {
         it.run(queryOf("SELECT * FROM tilstandsendring ORDER BY id ASC").map {
             Tilstandsendring(it.string("fra_tilstand"), it.string("til_tilstand"), it.string("fordi"), it.localDateTime("forste_gang"), it.localDateTime("siste_gang"))
         }.asList)
@@ -96,19 +67,4 @@ internal class MigrationTest {
         fun førstegang(other: LocalDateTime) = other.withNano(0) == førstegang.withNano(0)
         fun sistegang(other: LocalDateTime) = other.withNano(0) == sistegang.withNano(0)
     }
-
-    @Language("PostgreSQL")
-    private val truncateTablesSql = """
-CREATE OR REPLACE FUNCTION truncate_tables() RETURNS void AS ${'$'}${'$'}
-DECLARE
-    statements CURSOR FOR
-        SELECT tablename FROM pg_tables
-        WHERE schemaname = 'public' AND tablename NOT LIKE 'flyway%';
-BEGIN
-    FOR stmt IN statements LOOP
-        EXECUTE 'TRUNCATE TABLE ' || quote_ident(stmt.tablename) || ' CASCADE;';
-    END LOOP;
-END;
-${'$'}${'$'} LANGUAGE plpgsql;
-"""
 }
