@@ -24,9 +24,6 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
-private fun fixJdbcUrl(url: String) =
-    "jdbc:" + url.removePrefix("jdbc:").replace("postgres://", "postgresql://")
-
 private val objectMapper = jacksonObjectMapper()
     .registerModule(JavaTimeModule())
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -35,7 +32,14 @@ private val objectMapper = jacksonObjectMapper()
 fun main() {
     val env = System.getenv()
     val hikariConfig = HikariConfig().apply {
-        jdbcUrl = fixJdbcUrl(env.getValue("NAIS_DATABASE_SPORING_SPORING_URL"))
+        jdbcUrl = String.format(
+            "jdbc:postgresql://%s:%s/%s?user=%s",
+            env.getValue("NAIS_DATABASE_SPORING_SPORING_HOST"),
+            env.getValue("NAIS_DATABASE_SPORING_SPORING_PORT"),
+            env.getValue("NAIS_DATABASE_SPORING_SPORING_DATABASE"),
+            env.getValue("NAIS_DATABASE_SPORING_SPORING_USERNAME")
+        )
+        password = env.getValue("NAIS_DATABASE_SPORING_SPORING_PASSWORD")
         maximumPoolSize = 3
         minimumIdle = 1
         idleTimeout = 10001
