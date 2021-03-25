@@ -42,7 +42,7 @@ jobs:
         with:
           context: "."
           push: true
-          tags: ${{ env.DOCKER_IMAGE_NAME }}
+          tags: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}
           pull: true
   deploy:
     needs: build
