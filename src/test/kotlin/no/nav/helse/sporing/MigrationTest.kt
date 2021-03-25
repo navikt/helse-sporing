@@ -34,7 +34,7 @@ internal class MigrationTest {
         dataSource = HikariDataSource(hikariConfig)
         createSchema(dataSource)
 
-        repository = PostgresRepository(dataSource)
+        repository = PostgresRepository { dataSource }
     }
 
     private fun createSchema(dataSource: DataSource) {

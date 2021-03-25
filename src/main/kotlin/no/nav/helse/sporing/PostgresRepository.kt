@@ -11,7 +11,9 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
-internal class PostgresRepository(private val dataSource: DataSource): RapidsConnection.StatusListener, TilstandsendringRepository {
+internal class PostgresRepository(dataSourceProvider: () -> DataSource): RapidsConnection.StatusListener, TilstandsendringRepository {
+    private val dataSource by lazy(dataSourceProvider)
+
     override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime) {
         using(sessionOf(dataSource, returnGeneratedKey = true)) { session ->
             session.transaction { txSession ->

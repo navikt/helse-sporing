@@ -1,5 +1,6 @@
 package no.nav.helse.sporing
 
+import ch.qos.logback.core.status.StatusListener
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -17,7 +18,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
+import java.lang.Thread.sleep
 import java.time.LocalDateTime
+import javax.sql.DataSource
 
 private val objectMapper = jacksonObjectMapper()
     .registerModule(JavaTimeModule())
@@ -43,9 +46,10 @@ fun main() {
         connectionTimeout = 1000
         maxLifetime = 30001
     }
-    val dataSource = HikariDataSource(hikariConfig)
-
-    val repo = PostgresRepository(dataSource)
+    var dataSource: DataSource? = null
+    val repo = PostgresRepository {
+        requireNotNull(dataSource) { "The data source has not been initialized yet!" }
+    }
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
         .withKtorModule {
@@ -61,6 +65,18 @@ fun main() {
         }
         .build()
         .apply {
+            register(object : RapidsConnection.StatusListener {
+                override fun onStartup(rapidsConnection: RapidsConnection) {
+                    while (dataSource == null) {
+                        try {
+                            dataSource = HikariDataSource(hikariConfig)
+                        } catch (err: Exception) {
+                            log.error("Failed to initialize data source {}", err.message, err)
+                            sleep(500)
+                        }
+                    }
+                }
+            })
             register(repo)
             Tilstandsendringer(this, repo)
         }
