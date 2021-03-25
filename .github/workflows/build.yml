@@ -63,4 +63,5 @@ jobs:
           IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}
           CLUSTER: ${{ matrix.cluster }}
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          VARS: config/${{ matrix.cluster }}.yml
           VAR: team=${{ env.TEAM }},app=sporing
