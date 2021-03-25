@@ -8,10 +8,13 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.http.ContentType
+import io.ktor.http.*
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.jackson.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -50,7 +53,9 @@ fun main() {
             requestResponseTracing(log)
             routing {
                 get("/tilstandsmaskin") {
-                    call.respond(TilstandsendringerResponse(repo.tilstandsendringer()))
+                    withContext(Dispatchers.IO) {
+                        call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer()))
+                    }
                 }
             }
         }
