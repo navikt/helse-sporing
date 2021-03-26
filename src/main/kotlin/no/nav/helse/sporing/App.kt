@@ -18,12 +18,14 @@ import io.ktor.http.content.*
 import io.ktor.jackson.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.Thread.sleep
+import java.net.ConnectException
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
@@ -52,10 +54,9 @@ fun main() {
         connectionTimeout = 1000
         maxLifetime = 30001
     }
-    var dataSource: DataSource? = null
-    val repo = PostgresRepository {
-        requireNotNull(dataSource) { "The data source has not been initialized yet!" }
-    }
+
+    val dataSourceInitializer = DataSourceInitializer(hikariConfig)
+    val repo = PostgresRepository(dataSourceInitializer::getDataSource)
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
         .withKtorModule(ktorApi(repo))
@@ -63,13 +64,9 @@ fun main() {
         .apply {
             register(object : RapidsConnection.StatusListener {
                 override fun onStartup(rapidsConnection: RapidsConnection) {
-                    while (dataSource == null) {
-                        try {
-                            dataSource = HikariDataSource(hikariConfig)
-                        } catch (err: Exception) {
-                            log.error("Failed to initialize data source {}", err.message, err)
-                            sleep(500)
-                        }
+                    while (!dataSourceInitializer.initializeDataSource()) {
+                        log.info("Database is not available yet, trying again", dataSourceInitializer.getError())
+                        sleep(250)
                     }
                 }
             })
@@ -77,6 +74,30 @@ fun main() {
             Tilstandsendringer(this, repo)
         }
         .start()
+}
+
+private class DataSourceInitializer(private val hikariConfig: HikariConfig) {
+    private var dataSource: DataSource? = null
+    private var rootCause: Throwable? = null
+
+    fun getDataSource(): DataSource {
+        return requireNotNull(dataSource) { "The data source has not been initialized yet!" }
+    }
+
+    fun getError() = requireNotNull(rootCause)
+
+    fun initializeDataSource(): Boolean {
+        try {
+            rootCause = null
+            dataSource = HikariDataSource(hikariConfig)
+            return true
+        } catch (err: Exception) {
+            rootCause = err
+            while (err.cause != null) rootCause = err.cause
+            if (rootCause == null || rootCause !is ConnectException) throw err
+        }
+        return false
+    }
 }
 
 internal fun ktorApi(repo: PostgresRepository): Application.() -> Unit {
