@@ -126,7 +126,7 @@ internal fun ktorApi(repo: PostgresRepository): Application.() -> Unit {
                     call.respondText(ContentType.Text.Html, OK) { getResourceAsText("/index.html") }
                 }
             }
-            get("/tilstandsmaskin/{vedtaksperiodeId}.html") {
+            get("/tilstandsmaskin/{vedtaksperiodeId}") {
                 withContext(Dispatchers.IO) {
                     val vedtaksperiodeId = call.vedtaksperiode() ?: return@withContext
                     call.respondText(ContentType.Text.Html, OK) {
