@@ -17,14 +17,12 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.net.ConnectException
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.sql.DataSource
 
 private val objectMapper = jacksonObjectMapper()
@@ -70,12 +68,7 @@ fun main() {
             register(repo)
             Tilstandsendringer(this, repo)
         }
-
-    try {
-        rapidsConnection.start()
-    } finally {
-        sleep(5000)
-    }
+    rapidsConnection.start()
 }
 
 private class DataSourceInitializer(private val hikariConfig: HikariConfig) {
