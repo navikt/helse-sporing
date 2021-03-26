@@ -78,23 +78,28 @@ fun main() {
 
 private class DataSourceInitializer(private val hikariConfig: HikariConfig) {
     private var dataSource: DataSource? = null
-    private var rootCause: Throwable? = null
+    private var lastError: Throwable? = null
 
     fun getDataSource(): DataSource {
         return requireNotNull(dataSource) { "The data source has not been initialized yet!" }
     }
 
-    fun getError() = requireNotNull(rootCause)
+    fun getError() = requireNotNull(lastError)
 
     fun initializeDataSource(): Boolean {
         try {
-            rootCause = null
+            lastError = null
             dataSource = HikariDataSource(hikariConfig)
             return true
         } catch (err: Exception) {
-            rootCause = err
-            while (err.cause != null) rootCause = err.cause
-            if (rootCause == null || rootCause !is ConnectException) throw err
+            lastError = err
+            val causes = mutableListOf<Throwable>(err)
+            var nextError: Throwable? = err.cause
+            while (nextError != null) {
+                causes.add(nextError)
+                nextError = err.cause
+            }
+            if (causes.none { it is ConnectException }) throw err
         }
         return false
     }
