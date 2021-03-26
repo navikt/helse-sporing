@@ -19,12 +19,14 @@ import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.sporing.DataSourceInitializer.Companion.causes
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.net.ConnectException
 import java.util.*
 import javax.sql.DataSource
+import kotlin.reflect.KClass
 
 private val objectMapper = jacksonObjectMapper()
     .registerModule(JavaTimeModule())
@@ -59,51 +61,57 @@ fun main() {
         .withKtorModule(ktorApi(repo))
         .build()
         .apply {
-            register(object : RapidsConnection.StatusListener {
-                override fun onStartup(rapidsConnection: RapidsConnection) {
-                    while (!dataSourceInitializer.initializeDataSource()) {
-                        log.info("Database is not available yet, trying again")
-                        sleep(250)
-                    }
-                }
-            })
+            register(dataSourceInitializer)
             Behov(this, behovrepo)
             Tilstandsendringer(this, repo, behovrepo)
         }
     rapidsConnection.start()
 }
 
-private class DataSourceInitializer(private val hikariConfig: HikariConfig) {
-    private var dataSource: DataSource? = null
+private class DataSourceInitializer(private val hikariConfig: HikariConfig) : RapidsConnection.StatusListener {
+    private lateinit var dataSource: DataSource
 
     fun getDataSource(): DataSource {
-        return requireNotNull(dataSource) { "The data source has not been initialized yet!" }
+        check(this::dataSource.isInitialized) { "The data source has not been initialized yet!" }
+        return dataSource
     }
 
-    fun initializeDataSource(): Boolean {
+    override fun onStartup(rapidsConnection: RapidsConnection) {
+        while (!initializeDataSource()) {
+            log.info("Database is not available yet, trying again")
+            sleep(250)
+        }
+        migrate(dataSource)
+    }
+
+    private fun initializeDataSource(): Boolean {
         try {
-            createDataSource()
+            dataSource = HikariDataSource(hikariConfig)
             return true
         } catch (err: Exception) {
-            val causes = mutableListOf<Throwable>(err)
-            var nextError: Throwable? = err.cause
-            while (nextError != null) {
-                causes.add(nextError)
-                nextError = nextError.cause
-            }
-            if (causes.none { it is ConnectException }) throw err
+            err.allow(ConnectException::class)
         }
         return false
     }
 
-    private fun createDataSource() {
-        val dataSource = HikariDataSource(hikariConfig)
-        this.dataSource = dataSource
-        migrate(dataSource)
-    }
+    private companion object {
+        fun Throwable.allow(clazz: KClass<out Throwable>) {
+            if (causes().any { clazz.isInstance(it) }) return
+            throw this
+        }
 
-    private fun migrate(dataSource: DataSource) {
-        Flyway.configure().dataSource(dataSource).load().migrate()
+        fun Throwable.causes(): List<Throwable> {
+            return mutableListOf<Throwable>(this).apply {
+                var nextError: Throwable? = cause
+                while (nextError != null) {
+                    add(nextError)
+                    nextError = nextError.cause
+                }
+            }
+        }
+        fun migrate(dataSource: DataSource) {
+            Flyway.configure().dataSource(dataSource).load().migrate()
+        }
     }
 }
 
