@@ -104,7 +104,7 @@ internal fun ktorApi(repo: PostgresRepository): Application.() -> Unit {
                 withContext(Dispatchers.IO) {
                     val vedtaksperiodeId = call.vedtaksperiode() ?: return@withContext
                     call.respondText(ContentType.Text.Html, OK) {
-                        getResourceAsText("/index.html")
+                        getResourceAsText("/vedtaksperiode.html")
                             .replace("{vedtaksperiodeId}", "$vedtaksperiodeId")
                     }
                 }
