@@ -84,12 +84,12 @@ internal fun ktorApi(repo: PostgresRepository): Application.() -> Unit {
         install(ContentNegotiation) { register(ContentType.Application.Json, JacksonConverter(objectMapper)) }
         requestResponseTracing(log)
         routing {
-            get("/tilstandsmaskin") {
+            get("/tilstandsmaskin.json") {
                 withContext(Dispatchers.IO) {
                     call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer()))
                 }
             }
-            get("/tilstandsmaskin/{vedtaksperiodeId}") {
+            get("/tilstandsmaskin/{vedtaksperiodeId}.json") {
                 withContext(Dispatchers.IO) {
                     val vedtaksperiodeId = try {
                         call.parameters["vedtaksperiodeId"]?.let { UUID.fromString(it) }
@@ -100,8 +100,25 @@ internal fun ktorApi(repo: PostgresRepository): Application.() -> Unit {
                     call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(vedtaksperiodeId)))
                 }
             }
+            get("/") {
+                withContext(Dispatchers.IO) {
+                    call.respondText(ContentType.Text.Html, OK) { getResourceAsText("/index.html") }
+                }
+            }
+            get("/tilstandsmaskin/{vedtaksperiodeId}.html") {
+                withContext(Dispatchers.IO) {
+                    call.respondText(ContentType.Text.Html, OK) { getResourceAsText("/index.html") }
+                }
+            }
+            static("public") {
+                resources("public")
+            }
         }
     }
+}
+
+private fun getResourceAsText(path: String): String {
+    return object {}.javaClass.getResource(path).readText()
 }
 
 internal class TilstandsendringerResponse(val tilstandsendringer: List<PostgresRepository.TilstandsendringDto>)
