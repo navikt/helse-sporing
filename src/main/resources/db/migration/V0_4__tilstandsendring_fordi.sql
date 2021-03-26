@@ -1,0 +1,1 @@
+ALTER TABLE tilstandsendring ALTER COLUMN fordi TYPE TEXT;

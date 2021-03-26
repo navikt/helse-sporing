@@ -57,9 +57,7 @@ fun main() {
 
     val rapidsConnection = RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
         .withKtorModule(ktorApi(repo))
-        .build { _, kafkaRapid ->
-            kafkaRapid.seekToBeginning()
-        }
+        .build()
         .apply {
             register(object : RapidsConnection.StatusListener {
                 override fun onStartup(rapidsConnection: RapidsConnection) {
