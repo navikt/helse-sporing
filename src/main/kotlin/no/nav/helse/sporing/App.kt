@@ -91,12 +91,7 @@ internal fun ktorApi(repo: PostgresRepository): Application.() -> Unit {
             }
             get("/tilstandsmaskin/{vedtaksperiodeId}.json") {
                 withContext(Dispatchers.IO) {
-                    val vedtaksperiodeId = try {
-                        call.parameters["vedtaksperiodeId"]?.let { UUID.fromString(it) }
-                            ?: return@withContext call.respond(BadRequest, "Please set vedtaksperiodeId in url")
-                    } catch (err: IllegalArgumentException) {
-                        return@withContext call.respond(BadRequest, "Please use a valid UUID")
-                    }
+                    val vedtaksperiodeId = call.vedtaksperiode() ?: return@withContext
                     call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(vedtaksperiodeId)))
                 }
             }
@@ -107,7 +102,11 @@ internal fun ktorApi(repo: PostgresRepository): Application.() -> Unit {
             }
             get("/tilstandsmaskin/{vedtaksperiodeId}.html") {
                 withContext(Dispatchers.IO) {
-                    call.respondText(ContentType.Text.Html, OK) { getResourceAsText("/index.html") }
+                    val vedtaksperiodeId = call.vedtaksperiode() ?: return@withContext
+                    call.respondText(ContentType.Text.Html, OK) {
+                        getResourceAsText("/index.html")
+                            .replace("{vedtaksperiodeId}", "$vedtaksperiodeId")
+                    }
                 }
             }
             static("public") {
@@ -115,6 +114,18 @@ internal fun ktorApi(repo: PostgresRepository): Application.() -> Unit {
             }
         }
     }
+}
+
+private suspend fun ApplicationCall.vedtaksperiode(): UUID? {
+    val vedtaksperiodeId = try {
+        parameters["vedtaksperiodeId"]?.let { UUID.fromString(it) }
+    } catch (err: IllegalArgumentException) {
+        respond(BadRequest, "Please use a valid UUID")
+        return null
+    }
+
+    if (vedtaksperiodeId == null) respond(BadRequest, "Please set vedtaksperiodeId in url")
+    return vedtaksperiodeId
 }
 
 private fun getResourceAsText(path: String): String {
