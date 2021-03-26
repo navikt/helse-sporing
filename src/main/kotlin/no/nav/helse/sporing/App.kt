@@ -71,7 +71,11 @@ fun main() {
             Tilstandsendringer(this, repo)
         }
 
-    rapidsConnection.start()
+    try {
+        rapidsConnection.start()
+    } finally {
+        sleep(5000)
+    }
 }
 
 private class DataSourceInitializer(private val hikariConfig: HikariConfig) {
