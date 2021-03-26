@@ -27,7 +27,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): RapidsC
     private val selectTransitionStatemenet = """
         SELECT * FROM tilstandsendring
     """
-    internal fun tilstandsendringer() = using(sessionOf(dataSource)) {
+    override fun tilstandsendringer() = using(sessionOf(dataSource)) {
         it.run(queryOf(selectTransitionStatemenet).map { row ->
             TilstandsendringDto(
                 fraTilstand = row.string("fra_tilstand"),
@@ -47,7 +47,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): RapidsC
         WHERE vt.vedtaksperiode_id = :vedtaksperiodeId
         ORDER BY vt.naar ASC, vt.id ASC
     """
-    internal fun tilstandsendringer(vedtaksperiodeId: UUID) = using(sessionOf(dataSource)) {
+    override fun tilstandsendringer(vedtaksperiodeId: UUID) = using(sessionOf(dataSource)) {
         it.run(queryOf(selectVedtaksperiodeTransitionStatemenet, mapOf(
             "vedtaksperiodeId" to vedtaksperiodeId
         )).map { row ->
@@ -109,11 +109,4 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): RapidsC
         Flyway.configure().dataSource(dataSource).load().migrate()
     }
 
-    internal class TilstandsendringDto(
-        val fraTilstand: String,
-        val tilTilstand: String,
-        val fordi: String,
-        val førstegang: LocalDateTime,
-        val sistegang: LocalDateTime
-    )
 }

@@ -20,13 +20,14 @@ import java.net.URL
 import javax.sql.DataSource
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class KtorApiTest() : AbstractDatabaseTest() {
+internal class KtorApiTest() {
 
     private fun randomPort() = ServerSocket(0).use { it.localPort }
 
     private val serverPort = randomPort()
     private val baseUrl = "http://localhost:$serverPort"
     private lateinit var server: NettyApplicationEngine
+    private val repository = FilesystemRepository("/tilstandsmaskin.json")
 
     @BeforeAll
     fun setup() {

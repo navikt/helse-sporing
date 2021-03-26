@@ -1,12 +1,9 @@
 package no.nav.helse.sporing
 
-import ch.qos.logback.core.status.StatusListener
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.*
@@ -23,10 +20,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.lang.Thread.sleep
 import java.net.ConnectException
-import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
@@ -105,7 +100,7 @@ private class DataSourceInitializer(private val hikariConfig: HikariConfig) {
     }
 }
 
-internal fun ktorApi(repo: PostgresRepository): Application.() -> Unit {
+internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
     return {
         install(ContentNegotiation) { register(ContentType.Application.Json, JacksonConverter(objectMapper)) }
         requestResponseTracing(log)
@@ -158,4 +153,4 @@ private fun getResourceAsText(path: String): String {
     return object {}.javaClass.getResource(path).readText()
 }
 
-internal class TilstandsendringerResponse(val tilstandsendringer: List<PostgresRepository.TilstandsendringDto>)
+internal class TilstandsendringerResponse(val tilstandsendringer: List<TilstandsendringDto>)

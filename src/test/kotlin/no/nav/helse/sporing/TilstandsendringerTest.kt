@@ -22,7 +22,7 @@ internal class TilstandsendringerTest {
     @Test
     fun tilstandsendringer() {
         testRapid.sendTestMessage(tilstandsendringJson(UUID.randomUUID(), "START", "SYKMELDING_MOTTATT"))
-        assertEquals(1, repo.tilstandsendringer())
+        assertEquals(1, repo.antallTilstandsendringer())
     }
 
     private fun tilstandsendringJson(
@@ -51,7 +51,7 @@ internal class TilstandsendringerTest {
     private class TestRepo : TilstandsendringRepository {
         private val tilstandsendringer = mutableListOf<Triple<String, String, LocalDateTime>>()
 
-        internal fun tilstandsendringer() = tilstandsendringer.size
+        internal fun antallTilstandsendringer() = tilstandsendringer.size
         internal fun tilstandsendring(indeks: Int) = tilstandsendringer[indeks]
 
         internal fun reset() {
@@ -60,6 +60,14 @@ internal class TilstandsendringerTest {
 
         override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime) {
             tilstandsendringer.add(Triple(fraTilstand, tilTilstand, når))
+        }
+
+        override fun tilstandsendringer(): List<TilstandsendringDto> {
+            throw NotImplementedError()
+        }
+
+        override fun tilstandsendringer(vedtaksperiodeId: UUID): List<TilstandsendringDto> {
+            throw NotImplementedError()
         }
     }
 }
