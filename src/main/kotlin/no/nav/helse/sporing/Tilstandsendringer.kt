@@ -6,7 +6,7 @@ import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
 import java.util.*
 
-internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository: TilstandsendringRepository) {
+internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository: TilstandsendringRepository, behovRepository: BehovRepository) {
     private companion object {
         private val log = LoggerFactory.getLogger(Tilstandsendringer::class.java)
         private val sikkerLog = LoggerFactory.getLogger("tjenestekall")
@@ -15,7 +15,7 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
         River(rapidsConnection)
             .validate {
                 it.demandValue("@event_name", "vedtaksperiode_endret")
-                it.requireKey("@id", "@forårsaket_av.event_name", "vedtaksperiodeId", "forrigeTilstand", "gjeldendeTilstand")
+                it.requireKey("@id", "@forårsaket_av.id", "@forårsaket_av.event_name", "vedtaksperiodeId", "forrigeTilstand", "gjeldendeTilstand")
                 it.interestedIn("@behov")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
             }
@@ -26,7 +26,7 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
             .onSuccess { message, _ ->
                 val fraTilstand = message["forrigeTilstand"].asText()
                 val tilTilstand = message["gjeldendeTilstand"].asText()
-                val eventName = eventName(message)
+                val eventName = eventName(behovRepository, message)
                 log.info(
                     "lagrer tilstandsendring {} {} {}",
                     keyValue("fraTilstand", fraTilstand),
@@ -44,8 +44,14 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
             }
     }
 
-    private fun eventName(message: JsonMessage): String {
-        if (message["@behov"].isMissingOrNull()) return message["@forårsaket_av.event_name"].asText()
-        return message["@behov"].asSequence().map(JsonNode::asText).sorted().map(String::toLowerCase).joinToString(separator = "", transform = String::capitalize)
+    private fun eventName(behovRepository: BehovRepository, message: JsonMessage): String {
+        val eventName = message["@forårsaket_av.event_name"].asText()
+        if (eventName != "behov") return eventName
+        val id = UUID.fromString(message["@forårsaket_av.id"].asText())
+        return behovRepository.finnBehov(id)
+            ?.sorted()
+            ?.map(String::toLowerCase)
+            ?.joinToString(separator = "", transform = String::capitalize)
+            ?: eventName
     }
 }

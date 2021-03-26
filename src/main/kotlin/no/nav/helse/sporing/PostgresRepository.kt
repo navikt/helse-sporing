@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
-internal class PostgresRepository(dataSourceProvider: () -> DataSource): RapidsConnection.StatusListener, TilstandsendringRepository {
+internal class PostgresRepository(dataSourceProvider: () -> DataSource): TilstandsendringRepository {
     private val dataSource by lazy(dataSourceProvider)
 
     override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime) {
@@ -99,14 +99,6 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): RapidsC
                     "naar" to når
                 )
             ).asExecute)
-    }
-
-    override fun onStartup(rapidsConnection: RapidsConnection) {
-        migrate()
-    }
-
-    private fun migrate() {
-        Flyway.configure().dataSource(dataSource).load().migrate()
     }
 
 }

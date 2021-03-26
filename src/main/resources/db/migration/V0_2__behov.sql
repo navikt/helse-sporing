@@ -1,0 +1,5 @@
+CREATE TABLE behov
+(
+    id    UUID PRIMARY KEY,
+    typer VARCHAR(128) NOT NULL
+);

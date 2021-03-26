@@ -19,6 +19,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
+import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.net.ConnectException
@@ -52,10 +53,13 @@ fun main() {
 
     val dataSourceInitializer = DataSourceInitializer(hikariConfig)
     val repo = PostgresRepository(dataSourceInitializer::getDataSource)
+    val behovrepo = BehovPostgresRepository(dataSourceInitializer::getDataSource)
 
     val rapidsConnection = RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
         .withKtorModule(ktorApi(repo))
-        .build()
+        .build { _, kafkaRapid ->
+            kafkaRapid.seekToBeginning()
+        }
         .apply {
             register(object : RapidsConnection.StatusListener {
                 override fun onStartup(rapidsConnection: RapidsConnection) {
@@ -65,8 +69,8 @@ fun main() {
                     }
                 }
             })
-            register(repo)
-            Tilstandsendringer(this, repo)
+            Behov(this, behovrepo)
+            Tilstandsendringer(this, repo, behovrepo)
         }
     rapidsConnection.start()
 }
@@ -80,7 +84,7 @@ private class DataSourceInitializer(private val hikariConfig: HikariConfig) {
 
     fun initializeDataSource(): Boolean {
         try {
-            dataSource = HikariDataSource(hikariConfig)
+            createDataSource()
             return true
         } catch (err: Exception) {
             val causes = mutableListOf<Throwable>(err)
@@ -92,6 +96,16 @@ private class DataSourceInitializer(private val hikariConfig: HikariConfig) {
             if (causes.none { it is ConnectException }) throw err
         }
         return false
+    }
+
+    private fun createDataSource() {
+        val dataSource = HikariDataSource(hikariConfig)
+        this.dataSource = dataSource
+        migrate(dataSource)
+    }
+
+    private fun migrate(dataSource: DataSource) {
+        Flyway.configure().dataSource(dataSource).load().migrate()
     }
 }
 
