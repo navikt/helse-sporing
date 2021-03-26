@@ -17,17 +17,13 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.net.ConnectException
-import java.time.Duration
 import java.util.*
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.sql.DataSource
 
@@ -59,29 +55,14 @@ fun main() {
     val dataSourceInitializer = DataSourceInitializer(hikariConfig)
     val repo = PostgresRepository(dataSourceInitializer::getDataSource)
 
-    val shutdownCompleted = AtomicBoolean(false)
-    lateinit var rapidsConnection: RapidsConnection
-    rapidsConnection = RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
+    val rapidsConnection = RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
         .withKtorModule(ktorApi(repo))
-        .withKtorModule {
-            routing {
-                get("/stop") {
-                    log.info("Received shutdown signal via preStopHookPath")
-                    rapidsConnection.stop()
-                    while (!shutdownCompleted.get()) {
-                        delay(1000)
-                    }
-                    log.info("Responding to shutdown signal via preStopHookPath")
-                    call.respond(OK)
-                }
-            }
-        }
         .build()
         .apply {
             register(object : RapidsConnection.StatusListener {
                 override fun onStartup(rapidsConnection: RapidsConnection) {
                     while (!dataSourceInitializer.initializeDataSource()) {
-                        log.info("Database is not available yet, trying again", dataSourceInitializer.getError())
+                        log.info("Database is not available yet, trying again")
                         sleep(250)
                     }
                 }
@@ -90,30 +71,21 @@ fun main() {
             Tilstandsendringer(this, repo)
         }
 
-    try {
-        rapidsConnection.start()
-    } finally {
-        shutdownCompleted.set(true)
-    }
+    rapidsConnection.start()
 }
 
 private class DataSourceInitializer(private val hikariConfig: HikariConfig) {
     private var dataSource: DataSource? = null
-    private var lastError: Exception? = null
 
     fun getDataSource(): DataSource {
         return requireNotNull(dataSource) { "The data source has not been initialized yet!" }
     }
 
-    fun getError() = requireNotNull(lastError)
-
     fun initializeDataSource(): Boolean {
         try {
-            lastError = null
             dataSource = HikariDataSource(hikariConfig)
             return true
         } catch (err: Exception) {
-            lastError = err
             val causes = mutableListOf<Throwable>(err)
             var nextError: Throwable? = err.cause
             while (nextError != null) {

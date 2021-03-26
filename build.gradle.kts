@@ -21,7 +21,7 @@ val kotliqueryVersion = "1.3.1"
 val junitJupiterVersion = "5.6.2"
 
 dependencies {
-    api("com.github.navikt:rapids-and-rivers:1.f3e5de3")
+    api("com.github.navikt:rapids-and-rivers:20210326105201-e31cd73")
 
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("org.postgresql:postgresql:42.2.19")
