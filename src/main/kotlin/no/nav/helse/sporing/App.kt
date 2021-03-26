@@ -2,9 +2,11 @@ package no.nav.helse.sporing
 
 import ch.qos.logback.core.status.StatusListener
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.*
@@ -12,6 +14,7 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.http.content.*
 import io.ktor.jackson.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -19,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.lang.Thread.sleep
 import java.time.LocalDateTime
 import java.util.*
@@ -54,27 +58,7 @@ fun main() {
     }
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
-        .withKtorModule {
-            install(ContentNegotiation) { register(ContentType.Application.Json, JacksonConverter(objectMapper)) }
-            requestResponseTracing(log)
-            routing {
-                get("/tilstandsmaskin") {
-                    withContext(Dispatchers.IO) {
-                        call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer()))
-                    }
-                }
-                get("/tilstandsmaskin/{vedtaksperiodeId}") {
-                    withContext(Dispatchers.IO) {
-                        val vedtaksperiodeId = try {
-                            call.parameters["vedtaksperiodeId"]?.let { UUID.fromString(it) } ?: return@withContext call.respond(BadRequest, "Please set vedtaksperiodeId in url")
-                        } catch (err: IllegalArgumentException) {
-                            return@withContext call.respond(BadRequest, "Please use a valid UUID")
-                        }
-                        call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(vedtaksperiodeId)))
-                    }
-                }
-            }
-        }
+        .withKtorModule(ktorApi(repo))
         .build()
         .apply {
             register(object : RapidsConnection.StatusListener {
@@ -93,6 +77,31 @@ fun main() {
             Tilstandsendringer(this, repo)
         }
         .start()
+}
+
+internal fun ktorApi(repo: PostgresRepository): Application.() -> Unit {
+    return {
+        install(ContentNegotiation) { register(ContentType.Application.Json, JacksonConverter(objectMapper)) }
+        requestResponseTracing(log)
+        routing {
+            get("/tilstandsmaskin") {
+                withContext(Dispatchers.IO) {
+                    call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer()))
+                }
+            }
+            get("/tilstandsmaskin/{vedtaksperiodeId}") {
+                withContext(Dispatchers.IO) {
+                    val vedtaksperiodeId = try {
+                        call.parameters["vedtaksperiodeId"]?.let { UUID.fromString(it) }
+                            ?: return@withContext call.respond(BadRequest, "Please set vedtaksperiodeId in url")
+                    } catch (err: IllegalArgumentException) {
+                        return@withContext call.respond(BadRequest, "Please use a valid UUID")
+                    }
+                    call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(vedtaksperiodeId)))
+                }
+            }
+        }
+    }
 }
 
 internal class TilstandsendringerResponse(val tilstandsendringer: List<PostgresRepository.TilstandsendringDto>)
