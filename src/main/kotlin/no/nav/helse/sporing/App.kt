@@ -17,12 +17,18 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.net.ConnectException
+import java.time.Duration
 import java.util.*
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.sql.DataSource
 
 private val objectMapper = jacksonObjectMapper()
@@ -53,8 +59,23 @@ fun main() {
     val dataSourceInitializer = DataSourceInitializer(hikariConfig)
     val repo = PostgresRepository(dataSourceInitializer::getDataSource)
 
-    RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
+    val shutdownCompleted = AtomicBoolean(false)
+    lateinit var rapidsConnection: RapidsConnection
+    rapidsConnection = RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
         .withKtorModule(ktorApi(repo))
+        .withKtorModule {
+            routing {
+                get("/stop") {
+                    log.info("Received shutdown signal via preStopHookPath")
+                    rapidsConnection.stop()
+                    while (!shutdownCompleted.get()) {
+                        delay(1000)
+                    }
+                    log.info("Responding to shutdown signal via preStopHookPath")
+                    call.respond(OK)
+                }
+            }
+        }
         .build()
         .apply {
             register(object : RapidsConnection.StatusListener {
@@ -68,7 +89,12 @@ fun main() {
             register(repo)
             Tilstandsendringer(this, repo)
         }
-        .start()
+
+    try {
+        rapidsConnection.start()
+    } finally {
+        shutdownCompleted.set(true)
+    }
 }
 
 private class DataSourceInitializer(private val hikariConfig: HikariConfig) {
