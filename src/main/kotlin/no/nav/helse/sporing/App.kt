@@ -62,7 +62,6 @@ fun main() {
         .build()
         .apply {
             register(dataSourceInitializer)
-            Behov(this, behovrepo)
             Tilstandsendringer(this, repo, behovrepo)
         }
     rapidsConnection.start()
