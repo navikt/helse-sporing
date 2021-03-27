@@ -16,7 +16,7 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
             .validate {
                 it.demandValue("@event_name", "vedtaksperiode_endret")
                 it.requireKey("@id", "@forårsaket_av.id", "@forårsaket_av.event_name", "vedtaksperiodeId", "forrigeTilstand", "gjeldendeTilstand")
-                it.interestedIn("@behov")
+                it.interestedIn("@forårsaket_av.behov")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
             }
             .onError { problems, _ ->
@@ -48,7 +48,11 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
         val eventName = message["@forårsaket_av.event_name"].asText()
         if (eventName != "behov") return eventName
         val id = UUID.fromString(message["@forårsaket_av.id"].asText())
-        return behovRepository.finnBehov(id)
+        val behovtyper = message["@forårsaket_av.behov"]
+            .takeUnless(JsonNode::isMissingOrNull)
+            ?.map(JsonNode::asText)
+            ?: behovRepository.finnBehov(id)
+        return behovtyper
             ?.sorted()
             ?.map(String::toLowerCase)
             ?.joinToString(separator = "", transform = String::capitalize)
