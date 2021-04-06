@@ -25,7 +25,9 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
 
     @Language("PostgreSQL")
     private val selectTransitionStatemenet = """
-        SELECT * FROM tilstandsendring
+        SELECT t.*, count(1) as count FROM tilstandsendring t
+        INNER JOIN vedtaksperiode_tilstandsendring vt on t.id = vt.tilstandsendring_id
+        GROUP BY t.id
     """
     override fun tilstandsendringer() = using(sessionOf(dataSource)) {
         it.run(queryOf(selectTransitionStatemenet).map { row ->
@@ -34,7 +36,8 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
                 tilTilstand = row.string("til_tilstand"),
                 fordi = row.string("fordi"),
                 førstegang = row.localDateTime("forste_gang"),
-                sistegang = row.localDateTime("siste_gang")
+                sistegang = row.localDateTime("siste_gang"),
+                antall = row.long("count")
             )
         }.asList)
     }
@@ -56,7 +59,8 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
                 tilTilstand = row.string("til_tilstand"),
                 fordi = row.string("fordi"),
                 førstegang = row.localDateTime("naar"),
-                sistegang = row.localDateTime("naar")
+                sistegang = row.localDateTime("naar"),
+                antall = 1
             )
         }.asList)
     }

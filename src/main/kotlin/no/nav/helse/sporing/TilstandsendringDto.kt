@@ -7,5 +7,6 @@ internal class TilstandsendringDto(
     val tilTilstand: String,
     val fordi: String,
     val førstegang: LocalDateTime,
-    val sistegang: LocalDateTime
+    val sistegang: LocalDateTime,
+    val antall: Long
 )
