@@ -55,14 +55,13 @@ fun main() {
 
     val dataSourceInitializer = DataSourceInitializer(hikariConfig)
     val repo = PostgresRepository(dataSourceInitializer::getDataSource)
-    val behovrepo = BehovPostgresRepository(dataSourceInitializer::getDataSource)
 
     val rapidsConnection = RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
         .withKtorModule(ktorApi(repo))
         .build()
         .apply {
             register(dataSourceInitializer)
-            Tilstandsendringer(this, repo, behovrepo)
+            Tilstandsendringer(this, repo)
         }
     rapidsConnection.start()
 }

@@ -6,7 +6,7 @@ import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
 import java.util.*
 
-internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository: TilstandsendringRepository, behovRepository: BehovRepository) {
+internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository: TilstandsendringRepository) {
     private companion object {
         private val log = LoggerFactory.getLogger(Tilstandsendringer::class.java)
         private val sikkerLog = LoggerFactory.getLogger("tjenestekall")
@@ -26,7 +26,7 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
             .onSuccess { message, _ ->
                 val fraTilstand = message["forrigeTilstand"].asText()
                 val tilTilstand = message["gjeldendeTilstand"].asText()
-                val eventName = eventName(behovRepository, message)
+                val eventName = eventName(message)
                 log.info(
                     "lagrer tilstandsendring {} {} {}",
                     keyValue("fraTilstand", fraTilstand),
@@ -44,18 +44,13 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
             }
     }
 
-    private fun eventName(behovRepository: BehovRepository, message: JsonMessage): String {
+    private fun eventName(message: JsonMessage): String {
         val eventName = message["@forårsaket_av.event_name"].asText()
         if (eventName != "behov") return eventName
-        val id = UUID.fromString(message["@forårsaket_av.id"].asText())
-        val behovtyper = message["@forårsaket_av.behov"]
-            .takeUnless(JsonNode::isMissingOrNull)
-            ?.map(JsonNode::asText)
-            ?: behovRepository.finnBehov(id)
-        return behovtyper
-            ?.sorted()
-            ?.map(String::toLowerCase)
-            ?.joinToString(separator = "", transform = String::capitalize)
-            ?: eventName
+        return message["@forårsaket_av.behov"]
+            .map(JsonNode::asText)
+            .sorted()
+            .map(String::toLowerCase)
+            .joinToString(separator = "", transform = String::capitalize)
     }
 }

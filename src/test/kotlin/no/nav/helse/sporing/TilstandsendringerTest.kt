@@ -10,9 +10,8 @@ import java.util.*
 
 internal class TilstandsendringerTest {
     private val repo = TestRepo()
-    private val behovrepo = TestBehovRepo()
     private val testRapid = TestRapid()
-        .apply { Tilstandsendringer(this, repo, behovrepo) }
+        .apply { Tilstandsendringer(this, repo) }
 
     @BeforeEach
     fun setup() {
@@ -70,16 +69,6 @@ internal class TilstandsendringerTest {
 
         override fun tilstandsendringer(vedtaksperiodeId: UUID): List<TilstandsendringDto> {
             throw NotImplementedError()
-        }
-    }
-
-    private class TestBehovRepo() : BehovRepository {
-        override fun lagre(meldingId: UUID, behov: List<String>) {
-            throw NotImplementedError()
-        }
-
-        override fun finnBehov(meldingId: UUID): List<String>? {
-            return null
         }
     }
 }
