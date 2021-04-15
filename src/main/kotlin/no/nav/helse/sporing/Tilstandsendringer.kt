@@ -18,6 +18,9 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
                 it.requireKey("@id", "@forårsaket_av.id", "@forårsaket_av.event_name", "vedtaksperiodeId", "forrigeTilstand", "gjeldendeTilstand")
                 it.interestedIn("@forårsaket_av.behov")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
+                it.demand("forrigeTilstand") { forrigeTilstand ->
+                    require(forrigeTilstand.textValue() != it["gjeldendeTilstand"].textValue())
+                }
             }
             .onError { problems, _ ->
                 log.error("Forstod ikke vedtaksperiode_endret (Se sikker logg for detaljer)")

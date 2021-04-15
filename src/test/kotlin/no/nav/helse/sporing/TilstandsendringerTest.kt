@@ -25,6 +25,12 @@ internal class TilstandsendringerTest {
         assertEquals(1, repo.antallTilstandsendringer())
     }
 
+    @Test
+    fun `ingen tilstandsendring når forrige og gjelende tilstand er like`() {
+        testRapid.sendTestMessage(tilstandsendringJson(UUID.randomUUID(), "AVSLUTTET_UTEN_UTBETALING", "AVSLUTTET_UTEN_UTBETALING"))
+        assertEquals(0, repo.antallTilstandsendringer())
+    }
+
     private fun tilstandsendringJson(
         vedtaksperiodeId: UUID,
         fraTilstand: String,
