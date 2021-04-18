@@ -123,10 +123,25 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
                     call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer()))
                 }
             }
+            get("/tilstandsmaskin.dot") {
+                withContext(Dispatchers.IO) {
+                    call.respondText(ContentType.Text.Plain, OK) {
+                        GraphvizFormatter.General.format(repo.tilstandsendringer())
+                    }
+                }
+            }
             get("/tilstandsmaskin/{vedtaksperiodeId}.json") {
                 withContext(Dispatchers.IO) {
                     val vedtaksperiodeId = call.vedtaksperiode() ?: return@withContext
                     call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(vedtaksperiodeId)))
+                }
+            }
+            get("/tilstandsmaskin/{vedtaksperiodeId}.dot") {
+                withContext(Dispatchers.IO) {
+                    val vedtaksperiodeId = call.vedtaksperiode() ?: return@withContext
+                    call.respondText(ContentType.Text.Plain, OK) {
+                        GraphvizFormatter.Specific.format(repo.tilstandsendringer(vedtaksperiodeId))
+                    }
                 }
             }
             get("/") {
