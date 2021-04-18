@@ -71,6 +71,7 @@ internal class GraphvizFormatter private constructor(private val transitionForma
         sb.appendLine("digraph {")
 
         val edgesWithoutCluster = mutableListOf<Edge>()
+        clusters.forEach { it.clear() }
         tilstandsendringer
             .flatMap { listOf(it.fraTilstand, it.tilTilstand) }
             .map(::Edge)
@@ -79,7 +80,7 @@ internal class GraphvizFormatter private constructor(private val transitionForma
                 if (!clusters.any { it.take(edge) }) edgesWithoutCluster.add(edge)
             }
 
-        clusters.onEach { it.format(sb, edgeFormatter) }
+        clusters.onEachIndexed { index, cluster -> cluster.format(sb, index, edgeFormatter) }
         edgesWithoutCluster.onEach { it.format(sb, edgeFormatter) }
 
         tilstandsendringer.forEachIndexed { index, dto ->
@@ -102,16 +103,16 @@ internal class GraphvizFormatter private constructor(private val transitionForma
     }
 
     private class Cluster(private val color: String, private val states: Set<String>) {
-        private companion object {
-            private var index = 0
-        }
         private val edges = mutableSetOf<Edge>()
 
-        internal fun format(sb: StringBuilder, formatter: Formatter) {
-            index += 1
+        internal fun clear() {
+            edges.clear()
+        }
+
+        internal fun format(sb: StringBuilder, index: Int, formatter: Formatter) {
             sb.append("\t")
                 .append("subgraph cluster_")
-                .append(index)
+                .append(index + 1)
                 .appendLine(" {")
                 .appendLine("\t\tcolor=$color;")
                 .appendLine("\t\trankdir=\"LR\";")
