@@ -45,7 +45,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
     private fun filtrer(fordi: String?, etter: LocalDateTime?, tilstander: List<TilstandsendringDto>): List<TilstandsendringDto> {
         if (fordi == null && etter == null) return tilstander
         return tilstander
-            .filter { fordi == null || it.fordi == fordi }
+            .filter { fordi == null || it.fordi.equals(fordi, ignoreCase = true) }
             .filter { etter == null || it.sistegang >= etter }
     }
 
