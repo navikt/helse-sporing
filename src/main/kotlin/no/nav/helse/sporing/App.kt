@@ -186,7 +186,7 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
     }
 }
 
-private val re = Regex("[^A-Za-z0-9_-]")
+private val re = Regex("[^A-Za-z0-9æøåÆØÅ_-]")
 private fun String.alphaNumericalOnlyOrNull(): String? {
     return re.replace(this, "").takeIf(String::isNotEmpty)
 }
