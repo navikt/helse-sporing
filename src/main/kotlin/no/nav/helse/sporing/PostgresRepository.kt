@@ -29,8 +29,8 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
         INNER JOIN vedtaksperiode_tilstandsendring vt on t.id = vt.tilstandsendring_id
         GROUP BY t.id
     """
-    override fun tilstandsendringer() = using(sessionOf(dataSource)) {
-        it.run(queryOf(selectTransitionStatemenet).map { row ->
+    override fun tilstandsendringer(fordi: String?, etter: LocalDateTime?) = using(sessionOf(dataSource)) {
+        filtrer(fordi, etter, it.run(queryOf(selectTransitionStatemenet).map { row ->
             TilstandsendringDto(
                 fraTilstand = row.string("fra_tilstand"),
                 tilTilstand = row.string("til_tilstand"),
@@ -39,7 +39,14 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
                 sistegang = row.localDateTime("siste_gang"),
                 antall = row.long("count")
             )
-        }.asList)
+        }.asList))
+    }
+
+    private fun filtrer(fordi: String?, etter: LocalDateTime?, tilstander: List<TilstandsendringDto>): List<TilstandsendringDto> {
+        if (fordi == null && etter == null) return tilstander
+        return tilstander
+            .filter { fordi == null || it.fordi == fordi }
+            .filter { etter == null || it.sistegang >= etter }
     }
 
     @Language("PostgreSQL")

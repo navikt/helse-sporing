@@ -22,7 +22,7 @@ internal class FilesystemRepository(private val file: String) : Tilstandsendring
         throw NotImplementedError()
     }
 
-    override fun tilstandsendringer(): List<TilstandsendringDto> {
+    override fun tilstandsendringer(fordi: String?, etter: LocalDateTime?): List<TilstandsendringDto> {
         return testdata
     }
 

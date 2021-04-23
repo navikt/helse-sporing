@@ -24,6 +24,8 @@ import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.net.ConnectException
+import java.time.LocalDateTime
+import java.time.format.DateTimeParseException
 import java.util.*
 import javax.sql.DataSource
 import kotlin.reflect.KClass
@@ -120,13 +122,23 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
         routing {
             get("/tilstandsmaskin.json") {
                 withContext(Dispatchers.IO) {
-                    call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer()))
+                    val fordi = call.request.queryParameters["fordi"]?.takeIf(String::isNotEmpty)?.alphaNumericalOnlyOrNull()
+                    val etter = call.request.queryParameters["etter"]?.takeIf(String::isNotEmpty)?.let {
+                        try { LocalDateTime.parse(it) }
+                        catch (err: DateTimeParseException) { return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime") }
+                    }
+                    call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(fordi, etter)))
                 }
             }
             get("/tilstandsmaskin.dot") {
                 withContext(Dispatchers.IO) {
+                    val fordi = call.request.queryParameters["fordi"]?.takeIf(String::isNotEmpty)?.alphaNumericalOnlyOrNull()
+                    val etter = call.request.queryParameters["etter"]?.takeIf(String::isNotEmpty)?.let {
+                        try { LocalDateTime.parse(it) }
+                        catch (err: DateTimeParseException) { return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime") }
+                    }
                     call.respondText(ContentType.Text.Plain, OK) {
-                        GraphvizFormatter.General.format(repo.tilstandsendringer())
+                        GraphvizFormatter.General.format(repo.tilstandsendringer(fordi, etter))
                     }
                 }
             }
@@ -146,7 +158,16 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
             }
             get("/") {
                 withContext(Dispatchers.IO) {
-                    call.respondText(ContentType.Text.Html, OK) { getResourceAsText("/index.html") }
+                    val fordi = call.request.queryParameters["fordi"]?.takeIf(String::isNotEmpty)?.alphaNumericalOnlyOrNull()
+                    val etter = call.request.queryParameters["etter"]?.takeIf(String::isNotEmpty)?.let {
+                        try { LocalDateTime.parse(it).toString() }
+                        catch (err: DateTimeParseException) { return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime") }
+                    }
+                    call.respondText(ContentType.Text.Html, OK) {
+                        getResourceAsText("/index.html")
+                            .replace("{fordi}", "$fordi")
+                            .replace("{etter}", "$etter")
+                    }
                 }
             }
             get("/tilstandsmaskin/{vedtaksperiodeId}") {
@@ -163,6 +184,11 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
             }
         }
     }
+}
+
+private val re = Regex("[^A-Za-z0-9_-]")
+private fun String.alphaNumericalOnlyOrNull(): String? {
+    return re.replace(this, "").takeIf(String::isNotEmpty)
 }
 
 private suspend fun ApplicationCall.vedtaksperiode(): UUID? {

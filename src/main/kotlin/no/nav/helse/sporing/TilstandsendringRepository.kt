@@ -5,6 +5,6 @@ import java.util.*
 
 internal interface TilstandsendringRepository {
     fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime)
-    fun tilstandsendringer(): List<TilstandsendringDto>
+    fun tilstandsendringer(fordi: String?, etter: LocalDateTime?): List<TilstandsendringDto>
     fun tilstandsendringer(vedtaksperiodeId: UUID): List<TilstandsendringDto>
 }
