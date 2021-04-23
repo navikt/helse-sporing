@@ -20,7 +20,6 @@ import io.ktor.util.pipeline.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
-import no.nav.helse.sporing.DataSourceInitializer.Companion.causes
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
@@ -121,12 +120,12 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
         install(ContentNegotiation) { register(ContentType.Application.Json, JacksonConverter(objectMapper)) }
         requestResponseTracing(log)
         routing {
-            tilstandsmaskinRoute("/tilstandsmaskin.json") { fordi, etter ->
-                call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(fordi, etter)))
+            tilstandsmaskinRoute("/tilstandsmaskin.json") { fordi, etter, ignorerTilstand, ignorerFordi ->
+                call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(fordi, etter, ignorerTilstand, ignorerFordi)))
             }
-            tilstandsmaskinRoute("/tilstandsmaskin.dot") { fordi, etter ->
+            tilstandsmaskinRoute("/tilstandsmaskin.dot") { fordi, etter, ignorerTilstand, ignorerFordi ->
                 call.respondText(ContentType.Text.Plain, OK) {
-                    GraphvizFormatter.General.format(repo.tilstandsendringer(fordi, etter))
+                    GraphvizFormatter.General.format(repo.tilstandsendringer(fordi, etter, ignorerTilstand, ignorerFordi))
                 }
             }
             vedtaksperiodeRoute("/tilstandsmaskin/{vedtaksperiodeId}.json") { vedtaksperiodeId ->
@@ -137,11 +136,13 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
                     GraphvizFormatter.Specific.format(repo.tilstandsendringer(vedtaksperiodeId))
                 }
             }
-            tilstandsmaskinRoute("/") { fordi, etter ->
+            tilstandsmaskinRoute("/") { fordi, etter, ignorerTilstand, ignorerFordi  ->
                 call.respondText(ContentType.Text.Html, OK) {
                     getResourceAsText("/index.html")
-                        .replace("{fordi}", fordi ?: "")
-                        .replace("{etter}", etter?.toString() ?: "")
+                        .replace("{fordi}", fordi.joinToString(prefix = "?", separator = "&") { "fordi=$it" })
+                        .replace("{ignorerTilstand}", ignorerTilstand.joinToString(prefix = "&", separator = "&") { "ignorerTilstand=$it" })
+                        .replace("{ignorerFordi}", ignorerFordi.joinToString(prefix = "&", separator = "&") { "ignorerFordi=$it" })
+                        .replace("{etter}", "&etter=${etter?.toString() ?: ""}")
                 }
             }
             vedtaksperiodeRoute("/tilstandsmaskin/{vedtaksperiodeId}") { vedtaksperiodeId ->
@@ -158,25 +159,30 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
 }
 
 private val re = Regex("[^A-Za-z0-9æøåÆØÅ_-]")
-private fun String.alphaNumericalOnlyOrNull(): String? {
-    return re.replace(this, "").takeIf(String::isNotEmpty)
+private fun alphaNumericalOnlyOrNull(str: String): String? {
+    return re.replace(str, "").takeIf(String::isNotEmpty)
 }
 
-private fun Routing.tilstandsmaskinRoute(uri: String, body: suspend PipelineContext<Unit, ApplicationCall>.(fordi: String?, etter: LocalDateTime?) -> Unit) {
+private fun Routing.tilstandsmaskinRoute(uri: String, body: suspend PipelineContext<Unit, ApplicationCall>.(fordi: List<String>, etter: LocalDateTime?, ignorer: List<String>, ignorerFordi: List<String>) -> Unit) {
     get(uri) {
         withContext(Dispatchers.IO) {
-            val fordi = call.request.queryParameters["fordi"]?.takeIf(String::isNotEmpty)?.alphaNumericalOnlyOrNull()
-            val etter = call.request.queryParameters["etter"]?.takeIf(String::isNotEmpty)?.let {
+            val fordi = call.queryParam("fordi").mapNotNull(::alphaNumericalOnlyOrNull)
+            val ignorerTilstand = call.queryParam("ignorerTilstand").mapNotNull(::alphaNumericalOnlyOrNull)
+            val ignorerFordi = call.queryParam("ignorerFordi").mapNotNull(::alphaNumericalOnlyOrNull)
+            val etter = call.queryParam("etter").firstOrNull()?.let {
                 try {
                     LocalDateTime.parse(it)
                 } catch (err: DateTimeParseException) {
                     return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime")
                 }
             }
-            body(this@get, fordi, etter)
+            body(this@get, fordi, etter, ignorerTilstand, ignorerFordi)
         }
     }
 }
+
+private fun ApplicationCall.queryParam(name: String): List<String> =
+    request.queryParameters.getAll(name)?.filter(String::isNotBlank) ?: emptyList()
 
 private fun Routing.vedtaksperiodeRoute(uri: String, body: suspend PipelineContext<Unit, ApplicationCall>.(vedtaksperiodeId: UUID) -> Unit) {
     get(uri) {

@@ -4,8 +4,6 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.helse.rapids_rivers.RapidsConnection
-import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.util.*
@@ -29,8 +27,8 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
         INNER JOIN vedtaksperiode_tilstandsendring vt on t.id = vt.tilstandsendring_id
         GROUP BY t.id
     """
-    override fun tilstandsendringer(fordi: String?, etter: LocalDateTime?) = using(sessionOf(dataSource)) {
-        filtrer(fordi, etter, it.run(queryOf(selectTransitionStatemenet).map { row ->
+    override fun tilstandsendringer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>) = using(sessionOf(dataSource)) {
+        filtrer(fordi.map(String::toLowerCase), etter, ignorerTilstand.map(String::toLowerCase), ignorerFordi.map(String::toLowerCase), it.run(queryOf(selectTransitionStatemenet).map { row ->
             TilstandsendringDto(
                 fraTilstand = row.string("fra_tilstand"),
                 tilTilstand = row.string("til_tilstand"),
@@ -42,10 +40,11 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
         }.asList))
     }
 
-    private fun filtrer(fordi: String?, etter: LocalDateTime?, tilstander: List<TilstandsendringDto>): List<TilstandsendringDto> {
-        if (fordi == null && etter == null) return tilstander
+    private fun filtrer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>, tilstander: List<TilstandsendringDto>): List<TilstandsendringDto> {
         return tilstander
-            .filter { fordi == null || it.fordi.equals(fordi, ignoreCase = true) }
+            .filter { fordi.isEmpty() || it.fordi.toLowerCase() in fordi }
+            .filter { it.fordi.toLowerCase() !in ignorerFordi }
+            .filter { it.tilTilstand.toLowerCase() !in ignorerTilstand }
             .filter { etter == null || it.sistegang >= etter }
     }
 

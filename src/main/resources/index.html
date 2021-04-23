@@ -7,10 +7,20 @@
     <script src="/public/viz.js"></script>
 </head>
 <body onload='main()'>
+    <p>Trenger du inspirasjon?</p>
+    <p>Hva med å prøve:</p>
+    <ul>
+        <li><a href="?ignorerTilstand=TIL_INFOTRYGD">uten TIL_INFOTRYGD?</a></li>
+        <li><a href="?ignorerFordi=påminnelse">uten påminnelser?</a></li>
+        <li><a href="?fordi=inntektsmelding&amp;ignorerTilstand=TIL_INFOTRYGD">bare inntektsmeldinger?</a></li>
+        <li><a href="?fordi=ny_søknad_nav&amp;ignorerTilstand=TIL_INFOTRYGD">bare ny søknad?</a></li>
+        <li><a href="?fordi=sendt_søknad_nav&amp;ignorerTilstand=TIL_INFOTRYGD">bare sendt søknad?</a></li>
+        <li><a href="?fordi=ny_søknad&amp;fordi=sendt_søknad_nav&amp;ignorerTilstand=TIL_INFOTRYGD">ny søknad OG sendt søknad!?</a></li>
+    </ul>
 
 <script>
     function main() {
-       fetchJsonAndDisplayGraph("/tilstandsmaskin.dot?fordi={fordi}&etter={etter}")
+       fetchJsonAndDisplayGraph("/tilstandsmaskin.dot{fordi}{etter}{ignorerTilstand}{ignorerFordi}")
     }
 </script>
 </body>
