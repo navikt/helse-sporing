@@ -16,6 +16,7 @@ import io.ktor.jackson.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.helse.rapids_rivers.*
@@ -120,63 +121,33 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
         install(ContentNegotiation) { register(ContentType.Application.Json, JacksonConverter(objectMapper)) }
         requestResponseTracing(log)
         routing {
-            get("/tilstandsmaskin.json") {
-                withContext(Dispatchers.IO) {
-                    val fordi = call.request.queryParameters["fordi"]?.takeIf(String::isNotEmpty)?.alphaNumericalOnlyOrNull()
-                    val etter = call.request.queryParameters["etter"]?.takeIf(String::isNotEmpty)?.let {
-                        try { LocalDateTime.parse(it) }
-                        catch (err: DateTimeParseException) { return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime") }
-                    }
-                    call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(fordi, etter)))
+            tilstandsmaskinRoute("/tilstandsmaskin.json") { fordi, etter ->
+                call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(fordi, etter)))
+            }
+            tilstandsmaskinRoute("/tilstandsmaskin.dot") { fordi, etter ->
+                call.respondText(ContentType.Text.Plain, OK) {
+                    GraphvizFormatter.General.format(repo.tilstandsendringer(fordi, etter))
                 }
             }
-            get("/tilstandsmaskin.dot") {
-                withContext(Dispatchers.IO) {
-                    val fordi = call.request.queryParameters["fordi"]?.takeIf(String::isNotEmpty)?.alphaNumericalOnlyOrNull()
-                    val etter = call.request.queryParameters["etter"]?.takeIf(String::isNotEmpty)?.let {
-                        try { LocalDateTime.parse(it) }
-                        catch (err: DateTimeParseException) { return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime") }
-                    }
-                    call.respondText(ContentType.Text.Plain, OK) {
-                        GraphvizFormatter.General.format(repo.tilstandsendringer(fordi, etter))
-                    }
+            vedtaksperiodeRoute("/tilstandsmaskin/{vedtaksperiodeId}.json") { vedtaksperiodeId ->
+                call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(vedtaksperiodeId)))
+            }
+            vedtaksperiodeRoute("/tilstandsmaskin/{vedtaksperiodeId}.dot") { vedtaksperiodeId ->
+                call.respondText(ContentType.Text.Plain, OK) {
+                    GraphvizFormatter.Specific.format(repo.tilstandsendringer(vedtaksperiodeId))
                 }
             }
-            get("/tilstandsmaskin/{vedtaksperiodeId}.json") {
-                withContext(Dispatchers.IO) {
-                    val vedtaksperiodeId = call.vedtaksperiode() ?: return@withContext
-                    call.respond(OK, TilstandsendringerResponse(repo.tilstandsendringer(vedtaksperiodeId)))
+            tilstandsmaskinRoute("/") { fordi, etter ->
+                call.respondText(ContentType.Text.Html, OK) {
+                    getResourceAsText("/index.html")
+                        .replace("{fordi}", "$fordi")
+                        .replace("{etter}", "$etter")
                 }
             }
-            get("/tilstandsmaskin/{vedtaksperiodeId}.dot") {
-                withContext(Dispatchers.IO) {
-                    val vedtaksperiodeId = call.vedtaksperiode() ?: return@withContext
-                    call.respondText(ContentType.Text.Plain, OK) {
-                        GraphvizFormatter.Specific.format(repo.tilstandsendringer(vedtaksperiodeId))
-                    }
-                }
-            }
-            get("/") {
-                withContext(Dispatchers.IO) {
-                    val fordi = call.request.queryParameters["fordi"]?.takeIf(String::isNotEmpty)?.alphaNumericalOnlyOrNull()
-                    val etter = call.request.queryParameters["etter"]?.takeIf(String::isNotEmpty)?.let {
-                        try { LocalDateTime.parse(it).toString() }
-                        catch (err: DateTimeParseException) { return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime") }
-                    }
-                    call.respondText(ContentType.Text.Html, OK) {
-                        getResourceAsText("/index.html")
-                            .replace("{fordi}", "$fordi")
-                            .replace("{etter}", "$etter")
-                    }
-                }
-            }
-            get("/tilstandsmaskin/{vedtaksperiodeId}") {
-                withContext(Dispatchers.IO) {
-                    val vedtaksperiodeId = call.vedtaksperiode() ?: return@withContext
-                    call.respondText(ContentType.Text.Html, OK) {
-                        getResourceAsText("/vedtaksperiode.html")
-                            .replace("{vedtaksperiodeId}", "$vedtaksperiodeId")
-                    }
+            vedtaksperiodeRoute("/tilstandsmaskin/{vedtaksperiodeId}") { vedtaksperiodeId ->
+                call.respondText(ContentType.Text.Html, OK) {
+                    getResourceAsText("/vedtaksperiode.html")
+                        .replace("{vedtaksperiodeId}", "$vedtaksperiodeId")
                 }
             }
             static("public") {
@@ -191,16 +162,32 @@ private fun String.alphaNumericalOnlyOrNull(): String? {
     return re.replace(this, "").takeIf(String::isNotEmpty)
 }
 
-private suspend fun ApplicationCall.vedtaksperiode(): UUID? {
-    val vedtaksperiodeId = try {
-        parameters["vedtaksperiodeId"]?.let { UUID.fromString(it) }
-    } catch (err: IllegalArgumentException) {
-        respond(BadRequest, "Please use a valid UUID")
-        return null
+private fun Routing.tilstandsmaskinRoute(uri: String, body: suspend PipelineContext<Unit, ApplicationCall>.(fordi: String?, etter: LocalDateTime?) -> Unit) {
+    get(uri) {
+        withContext(Dispatchers.IO) {
+            val fordi = call.request.queryParameters["fordi"]?.takeIf(String::isNotEmpty)?.alphaNumericalOnlyOrNull()
+            val etter = call.request.queryParameters["etter"]?.takeIf(String::isNotEmpty)?.let {
+                try {
+                    LocalDateTime.parse(it)
+                } catch (err: DateTimeParseException) {
+                    return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime")
+                }
+            }
+            body(this@get, fordi, etter)
+        }
     }
+}
 
-    if (vedtaksperiodeId == null) respond(BadRequest, "Please set vedtaksperiodeId in url")
-    return vedtaksperiodeId
+private fun Routing.vedtaksperiodeRoute(uri: String, body: suspend PipelineContext<Unit, ApplicationCall>.(vedtaksperiodeId: UUID) -> Unit) {
+    get(uri) {
+        withContext(Dispatchers.IO) {
+            val vedtaksperiodeId =
+                try { call.parameters["vedtaksperiodeId"]?.let { UUID.fromString(it) }
+            } catch (err: IllegalArgumentException) { return@withContext call.respond(BadRequest, "Please use a valid UUID") }
+                    ?: return@withContext call.respond(BadRequest, "Please set vedtaksperiodeId in url")
+            body(this@get, vedtaksperiodeId)
+        }
+    }
 }
 
 private fun getResourceAsText(path: String): String {
