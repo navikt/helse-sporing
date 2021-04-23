@@ -140,8 +140,8 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
             tilstandsmaskinRoute("/") { fordi, etter ->
                 call.respondText(ContentType.Text.Html, OK) {
                     getResourceAsText("/index.html")
-                        .replace("{fordi}", "$fordi")
-                        .replace("{etter}", "$etter")
+                        .replace("{fordi}", fordi ?: "")
+                        .replace("{etter}", etter?.toString() ?: "")
                 }
             }
             vedtaksperiodeRoute("/tilstandsmaskin/{vedtaksperiodeId}") { vedtaksperiodeId ->
