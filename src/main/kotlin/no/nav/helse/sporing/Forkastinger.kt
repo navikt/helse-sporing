@@ -17,7 +17,7 @@ internal class Forkastinger(rapidsConnection: RapidsConnection, repository: Tils
         River(rapidsConnection)
             .validate {
                 it.demandValue("@event_name", "vedtaksperiode_forkastet")
-                it.requireKey("@id", "@forårsaket_av.id", "@forårsaket_av.event_name", "vedtaksperiodeId", "gjeldendeTilstand")
+                it.requireKey("@id", "@forårsaket_av.id", "@forårsaket_av.event_name", "vedtaksperiodeId", "tilstand")
                 it.interestedIn("@forårsaket_av.behov")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
             }
@@ -26,11 +26,11 @@ internal class Forkastinger(rapidsConnection: RapidsConnection, repository: Tils
                 sikkerLog.error("Forstod ikke vedtaksperiode_forkastet:\n${problems.toExtendedReport()}")
             }
             .onSuccess { message, _ ->
-                val gjeldendeTilstand = message["gjeldendeTilstand"].asText()
+                val gjeldendeTilstand = message["tilstand"].asText()
                 val eventName = eventName(message)
                 log.info(
                     "lagrer forkasting {} {} {}",
-                    keyValue("gjeldendeTilstand", gjeldendeTilstand),
+                    keyValue("tilstand", gjeldendeTilstand),
                     keyValue("fordi", eventName)
                 )
                 repository.lagre(
