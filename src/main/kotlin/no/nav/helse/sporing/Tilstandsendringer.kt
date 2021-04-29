@@ -31,15 +31,17 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
                 val fraTilstand = message["forrigeTilstand"].asText()
                 val tilTilstand = message["gjeldendeTilstand"].asText()
                 val eventName = eventName(message)
+                val vedtaksperiodeId = UUID.fromString(message["vedtaksperiodeId"].asText())
                 log.info(
                     "lagrer tilstandsendring {} {} {}",
                     keyValue("fraTilstand", fraTilstand),
                     keyValue("tilTilstand", tilTilstand),
-                    keyValue("fordi", eventName)
+                    keyValue("fordi", eventName),
+                    keyValue("vedtaksperiodeId", vedtaksperiodeId)
                 )
                 repository.lagre(
                     meldingId = UUID.fromString(message["@id"].asText()),
-                    vedtaksperiodeId = UUID.fromString(message["vedtaksperiodeId"].asText()),
+                    vedtaksperiodeId = vedtaksperiodeId,
                     fraTilstand = fraTilstand,
                     fordi = eventName,
                     tilTilstand = tilTilstand,

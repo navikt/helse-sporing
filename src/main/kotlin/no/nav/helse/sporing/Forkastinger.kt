@@ -28,14 +28,16 @@ internal class Forkastinger(rapidsConnection: RapidsConnection, repository: Tils
             .onSuccess { message, _ ->
                 val gjeldendeTilstand = message["tilstand"].asText()
                 val eventName = eventName(message)
+                val vedtaksperiodeId = UUID.fromString(message["vedtaksperiodeId"].asText())
                 log.info(
                     "lagrer forkasting {} {} {}",
                     keyValue("tilstand", gjeldendeTilstand),
-                    keyValue("fordi", eventName)
+                    keyValue("fordi", eventName),
+                    keyValue("vedtaksperiodeId", vedtaksperiodeId)
                 )
                 repository.lagre(
                     meldingId = UUID.fromString(message["@id"].asText()),
-                    vedtaksperiodeId = UUID.fromString(message["vedtaksperiodeId"].asText()),
+                    vedtaksperiodeId = vedtaksperiodeId,
                     fraTilstand = gjeldendeTilstand,
                     fordi = eventName,
                     tilTilstand = søppelbøttetilstand,
