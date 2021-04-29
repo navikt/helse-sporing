@@ -4,7 +4,7 @@ metadata:
   name: sporing
   namespace: tbd
   labels:
-    team: sporing
+    team: tbd
 spec:
   image: {{image}}
   strategy:
