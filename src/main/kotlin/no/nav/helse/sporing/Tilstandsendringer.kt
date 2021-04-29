@@ -3,6 +3,7 @@ package no.nav.helse.sporing
 import com.fasterxml.jackson.databind.JsonNode
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.sporing.Event.eventName
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -45,15 +46,5 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
                     når = message["@opprettet"].asLocalDateTime()
                 )
             }
-    }
-
-    private fun eventName(message: JsonMessage): String {
-        val eventName = message["@forårsaket_av.event_name"].asText()
-        if (eventName != "behov") return eventName
-        return message["@forårsaket_av.behov"]
-            .map(JsonNode::asText)
-            .sorted()
-            .map(String::toLowerCase)
-            .joinToString(separator = "", transform = String::capitalize)
     }
 }

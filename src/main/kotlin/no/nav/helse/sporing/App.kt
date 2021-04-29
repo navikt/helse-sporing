@@ -64,6 +64,7 @@ fun main() {
         .apply {
             register(dataSourceInitializer)
             Tilstandsendringer(this, repo)
+            Forkastinger(this, repo)
         }
     rapidsConnection.start()
 }
