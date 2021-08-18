@@ -10,7 +10,7 @@ internal object Event {
         return message["@forårsaket_av.behov"]
             .map(JsonNode::asText)
             .sorted()
-            .map(String::toLowerCase)
-            .joinToString(separator = "", transform = String::capitalize)
+            .map(String::lowercase)
+            .joinToString(separator = "", transform = { it.replaceFirstChar(Char::uppercase) })
     }
 }

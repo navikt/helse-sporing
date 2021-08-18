@@ -28,7 +28,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
         GROUP BY t.id
     """
     override fun tilstandsendringer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>) = using(sessionOf(dataSource)) {
-        filtrer(fordi.map(String::toLowerCase), etter, ignorerTilstand.map(String::toLowerCase), ignorerFordi.map(String::toLowerCase), it.run(queryOf(selectTransitionStatemenet).map { row ->
+        filtrer(fordi.map(String::lowercase), etter, ignorerTilstand.map(String::lowercase), ignorerFordi.map(String::lowercase), it.run(queryOf(selectTransitionStatemenet).map { row ->
             TilstandsendringDto(
                 fraTilstand = row.string("fra_tilstand"),
                 tilTilstand = row.string("til_tilstand"),
@@ -42,9 +42,9 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
 
     private fun filtrer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>, tilstander: List<TilstandsendringDto>): List<TilstandsendringDto> {
         return tilstander
-            .filter { fordi.isEmpty() || it.fordi.toLowerCase() in fordi }
-            .filter { it.fordi.toLowerCase() !in ignorerFordi }
-            .filter { it.tilTilstand.toLowerCase() !in ignorerTilstand }
+            .filter { fordi.isEmpty() || it.fordi.lowercase() in fordi }
+            .filter { it.fordi.lowercase() !in ignorerFordi }
+            .filter { it.tilTilstand.lowercase() !in ignorerTilstand }
             .filter { etter == null || it.sistegang >= etter }
     }
 

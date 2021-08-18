@@ -1,11 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.4.32"
-}
-
-buildscript {
-    dependencies {
-        classpath("org.junit.platform:junit-platform-gradle-plugin:1.2.0")
-    }
+    kotlin("jvm") version "1.5.21"
 }
 
 repositories {
@@ -13,23 +7,23 @@ repositories {
     maven("https://jitpack.io")
 }
 
-val ktorVersion = "1.5.3"
-val flywayVersion = "7.7.3"
-val hikariVersion = "4.0.3"
-val jacksonVersion = "2.12.3"
+val ktorVersion = "1.6.2"
+val flywayVersion = "7.13.0"
+val hikariVersion = "5.0.0"
+val jacksonVersion = "2.12.4"
 val kotliqueryVersion = "1.3.1"
-val junitJupiterVersion = "5.7.1"
+val junitJupiterVersion = "5.7.2"
 
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:3c6229a")
+    implementation("com.github.navikt:rapids-and-rivers:2021.07.08-10.12.37eff53b5c39")
 
     implementation("io.ktor:ktor-jackson:$ktorVersion")
-    implementation("org.postgresql:postgresql:42.2.19")
+    implementation("org.postgresql:postgresql:42.2.23")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
 
-    testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
+    testImplementation("com.opentable.components:otj-pg-embedded:0.13.4")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
@@ -38,10 +32,10 @@ dependencies {
 
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "15"
+        kotlinOptions.jvmTarget = "16"
     }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "15"
+        kotlinOptions.jvmTarget = "16"
     }
 
     named<Jar>("jar") {
@@ -71,6 +65,6 @@ tasks {
     }
 
     withType<Wrapper> {
-        gradleVersion = "7.0"
+        gradleVersion = "7.1.1"
     }
 }

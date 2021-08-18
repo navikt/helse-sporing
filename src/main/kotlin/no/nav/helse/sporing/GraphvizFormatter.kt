@@ -24,7 +24,7 @@ internal class GraphvizFormatter private constructor(private val transitionForma
                 .appendLine("];")
         })
 
-        internal val General = GraphvizFormatter(TransitionFormatter { sb: StringBuilder, index: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime ->
+        internal val General = GraphvizFormatter(TransitionFormatter { sb: StringBuilder, _: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, _: LocalDateTime ->
             sb
                 .append("\t")
                 .append(fraTilstand)
@@ -134,8 +134,8 @@ internal class GraphvizFormatter private constructor(private val transitionForma
 
         private val String.humanReadable get() = this
             .split("_")
-            .map(String::toLowerCase)
-            .joinToString(separator = " ", transform = String::capitalize)
+            .map(String::lowercase)
+            .joinToString(separator = " ", transform = { it.replaceFirstChar(Char::uppercase) })
 
         private val defaultEdgeFormatter = Formatter { edge: String ->
             StringBuilder()

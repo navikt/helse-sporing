@@ -468,7 +468,7 @@ function degree(graph, kind) {
   var getNodeDegree;
   var result = Object.create(null);
 
-  kind = (kind || 'both').toLowerCase();
+  kind = (kind || 'both').lowercase();
   if (kind === 'both' || kind === 'inout') {
     getNodeDegree = inoutDegreeCalculator;
   } else if (kind === 'in') {
@@ -4357,7 +4357,7 @@ function browserInfo() {
     };
   }
 
-  var ua = window.navigator.userAgent.toLowerCase(),
+  var ua = window.navigator.userAgent.lowercase(),
   // Useragent RegExp
   rwebkit = /(webkit)[ \/]([\w.]+)/,
   ropera = /(opera)(?:.*version)?[ \/]([\w.]+)/,
