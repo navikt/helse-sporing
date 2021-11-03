@@ -1,23 +1,16 @@
 package no.nav.helse.sporing
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
-import org.flywaydb.core.Flyway
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.TestInstance
 import java.io.InputStream
 import java.lang.Thread.sleep
 import java.net.HttpURLConnection
 import java.net.ServerSocket
-import java.net.Socket
 import java.net.URL
-import javax.sql.DataSource
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class KtorApiTest() {

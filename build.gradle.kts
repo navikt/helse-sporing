@@ -13,6 +13,7 @@ val hikariVersion = "5.0.0"
 val jacksonVersion = "2.12.4"
 val kotliqueryVersion = "1.3.1"
 val junitJupiterVersion = "5.7.2"
+val testcontainersVersion = "1.16.2"
 
 dependencies {
     implementation("com.github.navikt:rapids-and-rivers:2021.07.08-10.12.37eff53b5c39")
@@ -23,11 +24,13 @@ dependencies {
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
 
-    testImplementation("com.opentable.components:otj-pg-embedded:0.13.4")
-
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+
+    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
+    testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
+    testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
 }
 
 tasks {

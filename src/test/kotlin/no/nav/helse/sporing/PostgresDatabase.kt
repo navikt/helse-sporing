@@ -1,4 +1,3 @@
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.queryOf
@@ -6,12 +5,13 @@ import kotliquery.sessionOf
 import kotliquery.using
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
+import org.testcontainers.containers.PostgreSQLContainer
 import javax.sql.DataSource
 
 internal object PostgresDatabase {
 
     private var state: DBState = NotStarted
-    private var embeddedPostgres: EmbeddedPostgres? = null
+    private val postgres = PostgreSQLContainer<Nothing>("postgres:13")
     private var dataSource: DataSource? = null
 
     fun start(): PostgresDatabase {
@@ -31,8 +31,17 @@ internal object PostgresDatabase {
     }
 
     private fun startDatbase() {
-        embeddedPostgres = EmbeddedPostgres.builder().start()
-        val hikariConfig = createHikariConfig(embeddedPostgres!!.getJdbcUrl("postgres", "postgres"))
+        postgres.start()
+        val hikariConfig = HikariConfig().apply {
+            jdbcUrl = postgres.jdbcUrl
+            username = postgres.username
+            password = postgres.password
+            maximumPoolSize = 3
+            minimumIdle = 1
+            idleTimeout = 10001
+            connectionTimeout = 1000
+            maxLifetime = 30001
+        }
         dataSource = HikariDataSource(hikariConfig)
         createSchema(connection())
         Runtime.getRuntime().addShutdownHook(Thread(this::stop))
@@ -48,19 +57,8 @@ internal object PostgresDatabase {
     }
 
     private fun stopDatabase() {
-        embeddedPostgres!!.close()
-        embeddedPostgres = null
+        postgres.stop()
     }
-
-    private fun createHikariConfig(jdbcUrl: String) =
-        HikariConfig().apply {
-            this.jdbcUrl = jdbcUrl
-            maximumPoolSize = 3
-            minimumIdle = 1
-            idleTimeout = 10001
-            connectionTimeout = 1000
-            maxLifetime = 30001
-        }
 
     private interface DBState {
         fun connection(db: PostgresDatabase): DataSource {

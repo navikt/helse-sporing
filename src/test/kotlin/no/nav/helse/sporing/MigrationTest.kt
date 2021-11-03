@@ -1,19 +1,15 @@
 package no.nav.helse.sporing
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
+import PostgresDatabase
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import org.flywaydb.core.Flyway
-import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import java.time.LocalDateTime
 import java.util.*
-import javax.sql.DataSource
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class MigrationTest : AbstractDatabaseTest() {
