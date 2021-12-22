@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.5.21"
+    kotlin("jvm") version "1.6.10"
 }
 
 repositories {
@@ -7,19 +7,19 @@ repositories {
     maven("https://jitpack.io")
 }
 
-val ktorVersion = "1.6.2"
-val flywayVersion = "7.13.0"
+val ktorVersion = "1.6.7"
+val flywayVersion = "8.1.0"
 val hikariVersion = "5.0.0"
 val jacksonVersion = "2.12.4"
-val kotliqueryVersion = "1.3.1"
-val junitJupiterVersion = "5.7.2"
+val kotliqueryVersion = "1.6.0"
+val junitJupiterVersion = "5.8.2"
 val testcontainersVersion = "1.16.2"
 
 dependencies {
     implementation("com.github.navikt:rapids-and-rivers:2021.07.08-10.12.37eff53b5c39")
 
     implementation("io.ktor:ktor-jackson:$ktorVersion")
-    implementation("org.postgresql:postgresql:42.2.23")
+    implementation("org.postgresql:postgresql:42.3.1")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
@@ -35,10 +35,10 @@ dependencies {
 
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "16"
+        kotlinOptions.jvmTarget = "17"
     }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "16"
+        kotlinOptions.jvmTarget = "17"
     }
 
     named<Jar>("jar") {
