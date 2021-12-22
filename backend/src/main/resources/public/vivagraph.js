@@ -3490,7 +3490,7 @@ function augment(element) {
 
 },{"./lib/compile":33,"./lib/compile_template":34,"add-event-listener":2}],33:[function(require,module,exports){
 var parser = require('./domparser.js');
-var svg = require('../');
+var svg = require('./.');
 
 module.exports = compile;
 
