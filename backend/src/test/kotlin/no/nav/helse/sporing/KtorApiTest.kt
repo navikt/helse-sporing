@@ -1,8 +1,6 @@
 package no.nav.helse.sporing
 
 import io.ktor.http.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
@@ -16,25 +14,19 @@ import java.net.URL
 internal class KtorApiTest() {
 
     private fun randomPort() = ServerSocket(0).use { it.localPort }
-
     private val serverPort = randomPort()
+    private val testApp = LocalApp(serverPort)
+
     private val baseUrl = "http://localhost:$serverPort"
-    private lateinit var server: NettyApplicationEngine
-    private val repository = FilesystemRepository("/tilstandsmaskin.json")
 
     @BeforeAll
     fun setup() {
-        val environment = applicationEngineEnvironment {
-            connector { port = serverPort }
-            module(ktorApi(repository))
-        }
-        server = embeddedServer(Netty, environment)
-        server.start(wait = false)
+        testApp.start()
     }
 
     @AfterAll
     fun shutdown() {
-        server.stop(0, 0)
+        testApp.stop()
     }
 
     //@Test
