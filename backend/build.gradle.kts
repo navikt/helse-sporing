@@ -8,16 +8,17 @@ repositories {
 }
 
 val ktorVersion = "1.6.7"
-val flywayVersion = "8.1.0"
-val hikariVersion = "5.0.0"
+val flywayVersion = "8.4.1"
+val hikariVersion = "5.0.1"
 val jacksonVersion = "2.12.4"
 val kotliqueryVersion = "1.6.0"
 val junitJupiterVersion = "5.8.2"
 val testcontainersVersion = "1.16.2"
+val rapidsAndRiversVersion = "rapids-and-rivers:2022.01.19-09.53.b526ca84a9e4"
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("com.github.navikt:rapids-and-rivers:2021.07.08-10.12.37eff53b5c39")
+    implementation("com.github.navikt:$rapidsAndRiversVersion")
 
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("org.postgresql:postgresql:42.3.1")

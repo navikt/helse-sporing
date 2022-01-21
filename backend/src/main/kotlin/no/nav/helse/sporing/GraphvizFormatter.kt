@@ -7,7 +7,7 @@ internal class GraphvizFormatter private constructor(private val transitionForma
 
     internal companion object {
         private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM yyyy HH:mm:ss.SSS")
-        internal val Specific = GraphvizFormatter(TransitionFormatter { sb: StringBuilder, index: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime ->
+        internal val Specific = GraphvizFormatter { sb: StringBuilder, index: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime ->
             sb
                 .append("\t")
                 .append(fraTilstand)
@@ -22,9 +22,9 @@ internal class GraphvizFormatter private constructor(private val transitionForma
                 .append(")")
                 .append("\"")
                 .appendLine("];")
-        })
+        }
 
-        internal val General = GraphvizFormatter(TransitionFormatter { sb: StringBuilder, _: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, _: LocalDateTime ->
+        internal val General = GraphvizFormatter { sb: StringBuilder, _: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, _: LocalDateTime ->
             sb
                 .append("\t")
                 .append(fraTilstand)
@@ -35,7 +35,7 @@ internal class GraphvizFormatter private constructor(private val transitionForma
                 .append(eventFormatter.format(fordi))
                 .append("\"")
                 .appendLine("];")
-        })
+        }
     }
     private val eventFormatter = EventFormatter()
     private val edgeFormatter = EdgeFormatter()
@@ -91,13 +91,13 @@ internal class GraphvizFormatter private constructor(private val transitionForma
     }
 
     private class Edge(private val name: String) {
-        internal fun format(sb: StringBuilder, formatter: Formatter) {
+        fun format(sb: StringBuilder, formatter: Formatter) {
             sb
                 .append("\t\t")
                 .appendLine(formatter.format(name))
         }
 
-        internal fun within(states: Set<String>) = name in states
+        fun within(states: Set<String>) = name in states
         override fun hashCode() = name.hashCode()
         override fun equals(other: Any?) = other is Edge && other.name == this.name
     }
@@ -105,11 +105,11 @@ internal class GraphvizFormatter private constructor(private val transitionForma
     private class Cluster(private val color: String, private val states: Set<String>) {
         private val edges = mutableSetOf<Edge>()
 
-        internal fun clear() {
+        fun clear() {
             edges.clear()
         }
 
-        internal fun format(sb: StringBuilder, index: Int, formatter: Formatter) {
+        fun format(sb: StringBuilder, index: Int, formatter: Formatter) {
             sb.append("\t")
                 .append("subgraph cluster_")
                 .append(index + 1)
@@ -122,12 +122,12 @@ internal class GraphvizFormatter private constructor(private val transitionForma
             sb.appendLine("\t}")
         }
 
-        internal fun take(edge: Edge): Boolean {
+        fun take(edge: Edge): Boolean {
             if (edge !in this) return false
             edges.add(edge)
             return true
         }
-        internal operator fun contains(edge: Edge) = edge.within(states)
+        operator fun contains(edge: Edge) = edge.within(states)
     }
 
     private class EdgeFormatter : Formatter {
@@ -159,7 +159,7 @@ internal class GraphvizFormatter private constructor(private val transitionForma
                 .toString()
         }
 
-        private val edgeFormatters = mapOf<String, Formatter>(
+        private val edgeFormatters = mapOf(
             "TIL_INFOTRYGD" to endFormatter,
             "START" to endFormatter,
             "AVSLUTTET" to endFormatter,
