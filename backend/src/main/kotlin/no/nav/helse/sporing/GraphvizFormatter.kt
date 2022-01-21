@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 internal class GraphvizFormatter private constructor(private val transitionFormatter: TransitionFormatter) {
 
     internal companion object {
-        private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM yyyy HH:mm:ss.SSS")
+        private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm:ss")
         internal val Specific = GraphvizFormatter { sb: StringBuilder, index: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime ->
             sb
                 .append("\t")
@@ -17,7 +17,7 @@ internal class GraphvizFormatter private constructor(private val transitionForma
                 .append("label=\"")
                 .append("#${index + 1} ")
                 .append(eventFormatter.format(fordi))
-                .append(" (")
+                .append("\n(")
                 .append(når.format(dateFormatter))
                 .append(")")
                 .append("\"")
