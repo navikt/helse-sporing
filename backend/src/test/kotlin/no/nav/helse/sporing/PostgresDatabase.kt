@@ -37,6 +37,7 @@ internal object PostgresDatabase {
             username = postgres.username
             password = postgres.password
             maximumPoolSize = 3
+            initializationFailTimeout = 5000
             minimumIdle = 1
             idleTimeout = 10001
             connectionTimeout = 1000
@@ -48,7 +49,7 @@ internal object PostgresDatabase {
     }
 
     private fun createSchema(dataSource: DataSource) {
-        Flyway.configure().dataSource(dataSource).load().migrate()
+        Flyway.configure().dataSource(dataSource).initSql("create user cloudsqliamuser with encrypted password 'foo';").load().migrate()
         using(sessionOf(dataSource)) { it.run(queryOf(truncateTablesSql).asExecute) }
     }
 
