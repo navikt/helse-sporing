@@ -176,7 +176,8 @@ internal class GraphvizFormatter private constructor(private val transitionForma
         private val events = mapOf(
             "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepengerSykepengehistorikk" to "Ytelser (med sykepengehistorikk)",
             "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser (uten sykepengehistorikk)",
-            "InntekterforsammenligningsgrunnlagMedlemskapOpptjening" to "Vilkårsgrunnlag"
+            "InntekterforsammenligningsgrunnlagMedlemskapOpptjening" to "Vilkårsgrunnlag",
+            "Arbeidsforholdv2InntekterforsammenligningsgrunnlagInntekterforsykepengegrunnlagMedlemskap" to "Vilkårsgrunnlag"
         )
         override fun format(name: String): String {
             return events[name] ?: name
