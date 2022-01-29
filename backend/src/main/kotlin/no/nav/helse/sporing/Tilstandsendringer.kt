@@ -35,22 +35,29 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
                 val eventName = eventName(message)
                 val vedtaksperiodeId = UUID.fromString(message["vedtaksperiodeId"].asText())
                 val årsak = Årsak(UUID.fromString(message["@forårsaket_av.id"].asText()), eventName, message["@forårsaket_av.opprettet"].asLocalDateTime())
-                log.info(
-                    "lagrer tilstandsendring {} {} {}",
-                    keyValue("fraTilstand", fraTilstand),
-                    keyValue("tilTilstand", tilTilstand),
-                    keyValue("fordi", eventName),
-                    keyValue("vedtaksperiodeId", vedtaksperiodeId)
-                )
-                repository.lagre(
-                    meldingId = UUID.fromString(message["@id"].asText()),
-                    vedtaksperiodeId = vedtaksperiodeId,
-                    fraTilstand = fraTilstand,
-                    fordi = eventName,
-                    tilTilstand = tilTilstand,
-                    når = message["@opprettet"].asLocalDateTime(),
-                    årsak = årsak
-                )
+                withMDC(mapOf(
+                    "fraTilstand" to fraTilstand,
+                    "tilTilstand" to tilTilstand,
+                    "fordi" to eventName,
+                    "vedtaksperiodeId" to "$vedtaksperiodeId"
+                )) {
+                    log.info(
+                        "lagrer tilstandsendring {} {} {}",
+                        keyValue("fraTilstand", fraTilstand),
+                        keyValue("tilTilstand", tilTilstand),
+                        keyValue("fordi", eventName),
+                        keyValue("vedtaksperiodeId", vedtaksperiodeId)
+                    )
+                    repository.lagre(
+                        meldingId = UUID.fromString(message["@id"].asText()),
+                        vedtaksperiodeId = vedtaksperiodeId,
+                        fraTilstand = fraTilstand,
+                        fordi = eventName,
+                        tilTilstand = tilTilstand,
+                        når = message["@opprettet"].asLocalDateTime(),
+                        årsak = årsak
+                    )
+                }
             }
     }
 }
