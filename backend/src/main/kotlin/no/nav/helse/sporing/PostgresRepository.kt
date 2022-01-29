@@ -74,7 +74,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
 
     @Language("PostgreSQL")
     private val insertÅrsakStatement = """
-        INSERT INTO arsak (melding_id, navn, opprettet) VALUES (:id, :navn, :opprettet) RETURNING id
+        INSERT INTO arsak (melding_id, navn, opprettet) VALUES (:id, :navn, :opprettet) ON CONFLICT(melding_id) DO UPDATE SET navn=EXCLUDED.navn RETURNING id
     """
     private fun lagreÅrsak(session: Session, id: UUID, navn: String, opprettet: LocalDateTime): Long? {
         return session.run(
