@@ -44,7 +44,8 @@ internal class TilstandsendringerTest {
     "@id": "${UUID.randomUUID()}",
     "@forårsaket_av": {
       "id": "${UUID.randomUUID()}",
-      "event_name": "ny_søknad"
+      "event_name": "ny_søknad",
+      "opprettet": "${LocalDateTime.now()}"
     },
     "@opprettet": "$tidspunkt",
     "vedtaksperiodeId": "$vedtaksperiodeId",
@@ -65,7 +66,7 @@ internal class TilstandsendringerTest {
             tilstandsendringer.clear()
         }
 
-        override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime) {
+        override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime, årsak: Årsak) {
             tilstandsendringer.add(Triple(fraTilstand, tilTilstand, når))
         }
 

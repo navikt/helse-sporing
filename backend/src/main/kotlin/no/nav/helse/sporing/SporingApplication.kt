@@ -133,7 +133,7 @@ internal class LocalApp(private val serverPort: Int = 4000): SporingApplication 
             objectMapper.readValue<TilstandsendringerResponse>(getResourceAsText(file)).tilstandsendringer
         }
 
-        override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime) {
+        override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime, årsak: Årsak) {
             throw NotImplementedError()
         }
 
