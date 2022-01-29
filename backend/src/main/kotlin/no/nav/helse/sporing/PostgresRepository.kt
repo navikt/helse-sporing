@@ -5,18 +5,23 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import org.intellij.lang.annotations.Language
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
 internal class PostgresRepository(dataSourceProvider: () -> DataSource): TilstandsendringRepository {
+    private companion object {
+        private val log = LoggerFactory.getLogger(Tilstandsendringer::class.java)
+        private val sikkerLog = LoggerFactory.getLogger("tjenestekall")
+    }
     private val dataSource by lazy(dataSourceProvider)
 
     override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime, årsak: Årsak) {
         using(sessionOf(dataSource, returnGeneratedKey = true)) { session ->
             session.transaction { txSession ->
-                val årsakId = lagreÅrsak(txSession, årsak.id, årsak.navn, årsak.opprettet) ?: return@transaction
-                val tilstandsendringId = lagreTransisjon(txSession, fraTilstand, tilTilstand, fordi, når) ?: return@transaction
+                val årsakId = lagreÅrsak(txSession, årsak.id, årsak.navn, årsak.opprettet) ?: return@transaction log.info("tilstandsendring ble ikke lagret pga manglende årsakId")
+                val tilstandsendringId = lagreTransisjon(txSession, fraTilstand, tilTilstand, fordi, når) ?: return@transaction log.info("tilstandsendring ble ikke lagret pga manglende tilstandsendringId")
                 kobleVedtaksperiodeTilTransisjon(txSession, meldingId, tilstandsendringId, årsakId, vedtaksperiodeId, når)
             }
         }
