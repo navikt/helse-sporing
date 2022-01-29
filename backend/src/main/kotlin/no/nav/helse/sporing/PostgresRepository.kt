@@ -97,9 +97,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
         INSERT INTO tilstandsendring (fra_tilstand, til_tilstand, fordi, forste_gang, siste_gang)
         VALUES (:fraTilstand, :tilTilstand, :fordi, :naar, :naar)
         ON CONFLICT(fra_tilstand, til_tilstand, fordi) DO 
-        UPDATE 
-            SET siste_gang = EXCLUDED.siste_gang 
-            WHERE EXCLUDED.siste_gang >= tilstandsendring.siste_gang
+        UPDATE SET siste_gang = GREATEST(EXCLUDED.siste_gang, tilstandsendring.siste_gang)
         RETURNING id
     """
     private fun lagreTransisjon(session: Session, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime): Long? {
