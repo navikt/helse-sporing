@@ -32,7 +32,7 @@ fun main() {
     app.start()
 }
 
-internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
+internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClient): Application.() -> Unit {
     return {
         install(ContentNegotiation) { register(ContentType.Application.Json, JacksonConverter(objectMapper)) }
         requestResponseTracing(log)
@@ -68,6 +68,13 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
                         .replace("{vedtaksperiodeId}", "$vedtaksperiodeId")
                 }
             }
+            get("/person/{pid}") {
+                withContext(Dispatchers.IO) {
+                    val pid = call.parameters["pid"]?.let(::numericalOnlyOrNull) ?: return@withContext call.respond(BadRequest, "Please set pid in url (numbers only)")
+                    val vedtaksperioder = spleisClient.hentVedtaksperioder(pid)
+                    call.respond(OK, PersonendringerResponse(repo.personendringer(vedtaksperioder.arbeidsgivere.flatMap { it.vedtaksperioder.map { it.id } })))
+                }
+            }
             static("public") {
                 resources("public")
             }
@@ -78,6 +85,11 @@ internal fun ktorApi(repo: TilstandsendringRepository): Application.() -> Unit {
 private val re = Regex("[^A-Za-z0-9æøåÆØÅ_-]")
 private fun alphaNumericalOnlyOrNull(str: String): String? {
     return re.replace(str, "").takeIf(String::isNotEmpty)
+}
+
+private val reNumerical = Regex("[^0-9]")
+private fun numericalOnlyOrNull(str: String): String? {
+    return reNumerical.replace(str, "").takeIf(String::isNotEmpty)
 }
 
 private fun Routing.tilstandsmaskinRoute(uri: String, body: suspend PipelineContext<Unit, ApplicationCall>.(fordi: List<String>, etter: LocalDateTime?, ignorer: List<String>, ignorerFordi: List<String>) -> Unit) {
@@ -118,3 +130,4 @@ private fun getResourceAsText(path: String): String {
 }
 
 internal class TilstandsendringerResponse(val tilstandsendringer: List<TilstandsendringDto>)
+internal class PersonendringerResponse(val tilstandsendringer: List<PersonendringDto>)

@@ -46,6 +46,35 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
         }.asList))
     }
 
+    @Language("PostgreSQL")
+    private val personendringer = """
+        SELECT
+            a.melding_id, a.navn, a.opprettet, vt.vedtaksperiode_id, vt.naar, t.fra_tilstand, t.til_tilstand
+        FROM arsak a
+        INNER JOIN vedtaksperiode_tilstandsendring vt ON a.id = vt.arsak_id
+        INNER JOIN tilstandsendring t ON t.id = vt.tilstandsendring_id
+        WHERE
+                vt.vedtaksperiode_id IN ({{VEDTAKSPERIODER_PLACEHOLDER}})
+    """
+    override fun personendringer(vedtaksperioder: List<UUID>): List<PersonendringDto> {
+        return using(sessionOf(dataSource)) { session ->
+            session.run(queryOf(
+                personendringer.replace("{{VEDTAKSPERIODER_PLACEHOLDER}}", vedtaksperioder.joinToString { "?" }),
+                *vedtaksperioder.toTypedArray()
+            ).map {
+                PersonendringDto(
+                    meldingId = UUID.fromString(it.string(1)),
+                    navn = it.string(2),
+                    opprettet = it.localDateTime(3),
+                    vedtaksperiodeId = UUID.fromString(it.string(4)),
+                    når = it.localDateTime(5),
+                    fraTilstand = it.string(6),
+                    tilTilstand = it.string(7)
+                )
+            }.asList)
+        }
+    }
+
     private fun filtrer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>, tilstander: List<TilstandsendringDto>): List<TilstandsendringDto> {
         return tilstander
             .filter { fordi.isEmpty() || it.fordi.lowercase() in fordi }

@@ -1,2 +1,4 @@
 kafkaPool: nav-dev
 ingress: https://sporing.dev.intern.nav.no
+spleisScope: api://dev-fss.tbd.spleis-api/.default
+spleisHostname: spleis-api.dev-fss-pub.nais.io

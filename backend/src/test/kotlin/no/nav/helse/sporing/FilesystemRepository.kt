@@ -34,6 +34,10 @@ internal class FilesystemRepository(private val file: String) : Tilstandsendring
         return testdata
     }
 
+    override fun personendringer(vedtaksperioder: List<UUID>): List<PersonendringDto> {
+        throw NotImplementedError()
+    }
+
     private fun getResourceAsText(path: String): String {
         return object {}.javaClass.getResource(path).readText()
     }

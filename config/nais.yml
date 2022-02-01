@@ -43,6 +43,10 @@ spec:
     pool: {{kafkaPool}}
   ingresses:
     - {{ingress}}
+  accessPolicy:
+    outbound:
+      external:
+        - host: {{spleisHostname}}
   env:
     - name: KAFKA_CONSUMER_GROUP_ID
       value: tbd-sporing-v1
@@ -50,3 +54,5 @@ spec:
       value: tbd.rapid.v1
     - name: KAFKA_RESET_POLICY
       value: earliest
+    - name: SPLEIS_SCOPE
+      value: {{spleisScope}}

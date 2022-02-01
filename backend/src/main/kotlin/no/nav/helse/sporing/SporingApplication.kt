@@ -46,8 +46,16 @@ internal class ProductionApp(private val env: Map<String, String>): SporingAppli
     private val dataSourceInitializer = DataSourceInitializer(hikariConfig)
     private val repo = PostgresRepository(dataSourceInitializer::getDataSource)
 
+    private val azureClient = AzureClient(
+        tokenEndpoint = env.getValue("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+        clientId = env.getValue("AZURE_APP_CLIENT_ID"),
+        clientSecret = env.getValue("AZURE_APP_CLIENT_SECRET")
+    )
+
+    private val spleisClient = SpleisClient("http://spleis-api.tbd.svc.cluster.local", azureClient, env.getValue("SPLEIS_SCOPE"))
+
     private val rapidsConnection = RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
-        .withKtorModule(ktorApi(repo))
+        .withKtorModule(ktorApi(repo, spleisClient))
         .build()
         .apply {
             register(dataSourceInitializer)
@@ -111,7 +119,7 @@ internal class LocalApp(private val serverPort: Int = 4000): SporingApplication 
     private val server: NettyApplicationEngine
     private val environment = applicationEngineEnvironment {
         connector { port = serverPort }
-        module(ktorApi(repository))
+        module(ktorApi(repository, SpleisClient("http://foo.bar", AzureClient("http://bar.foo", "no", "thanks"), "scope")))
     }
 
     init {
@@ -147,6 +155,10 @@ internal class LocalApp(private val serverPort: Int = 4000): SporingApplication 
 
         override fun tilstandsendringer(vedtaksperiodeId: UUID): List<TilstandsendringDto> {
             return testdata
+        }
+
+        override fun personendringer(vedtaksperioder: List<UUID>): List<PersonendringDto> {
+            throw NotImplementedError()
         }
 
         private fun getResourceAsText(path: String): String {
