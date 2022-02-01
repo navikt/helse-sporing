@@ -8,14 +8,14 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-internal class PersonendringerHtmlBuilder(private val person: PersonDTO, private val tilstandsendringer: List<PersonendringDto>) {
+internal class PersonendringerHtmlBuilder(person: PersonDTO, tilstandsendringer: List<PersonendringDto>) {
     private val endringer = mutableMapOf<UUID, Endring>()
 
     init {
-        sySammen()
+        sySammen(person, tilstandsendringer.sortedBy { it.når })
     }
 
-    private fun sySammen() {
+    private fun sySammen(person: PersonDTO, tilstandsendringer: List<PersonendringDto>) {
         val vedtaksperioder = mutableMapOf<UUID, Vedtaksperiode>()
         val forrigeTilstand = mutableMapOf<String, MutableMap<UUID, Vedtaksperiodeendring>>()
 
@@ -38,7 +38,7 @@ internal class PersonendringerHtmlBuilder(private val person: PersonDTO, private
         val sb = StringBuilder()
         sb.appendLine("<div class='tabell tidslinje'>")
         endringer.values.sorter().forEach { it.renderHtml(sb) }
-        sb.appendLine("</div")
+        sb.appendLine("</div>")
         return sb.toString()
     }
 
