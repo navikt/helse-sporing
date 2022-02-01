@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.ktor.http.*
 import no.nav.helse.sporing.person.PersonDTO
 import org.slf4j.LoggerFactory
 import java.io.InputStream
@@ -26,11 +27,11 @@ internal class SpleisClient(
         private val tjenestekallLog = LoggerFactory.getLogger("tjenestekall")
     }
 
-    internal fun hentVedtaksperioder(fnr: String) = objectMapper.convertValue<PersonDTO>("/api/vedtaksperioder".request(fnr))
+    internal fun hentVedtaksperioder(fnr: String) = objectMapper.convertValue<PersonDTO>("/api/vedtaksperioder".request(HttpMethod.Get, fnr))
 
-    private fun String.request(fnr: String): JsonNode {
+    private fun String.request(method: HttpMethod, fnr: String): JsonNode {
         val (responseCode, responseBody) = with(URL(baseUrl + this).openConnection() as HttpURLConnection) {
-            requestMethod = "POST"
+            requestMethod = method.value
 
             setRequestProperty("Authorization", "Bearer ${azureClient.getToken(accesstokenScope)}")
             setRequestProperty("Accept", "application/json")
@@ -43,7 +44,7 @@ internal class SpleisClient(
             responseCode to stream?.bufferedReader()?.readText()
         }
 
-        tjenestekallLog.info("svar fra spleis: url=$baseUrl responseCode=$responseCode responseBody=$responseBody")
+        tjenestekallLog.info("svar fra spleis: url=$baseUrl$this responseCode=$responseCode responseBody=$responseBody")
 
         if (responseCode >= 300 || responseBody == null) {
             throw SpleisApiException("unknown error (responseCode=$responseCode) from spleis", responseCode, responseBody)
