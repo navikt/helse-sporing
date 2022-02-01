@@ -72,7 +72,12 @@ internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClien
                 withContext(Dispatchers.IO) {
                     val pid = call.parameters["pid"]?.let(::numericalOnlyOrNull) ?: return@withContext call.respond(BadRequest, "Please set pid in url (numbers only)")
                     val vedtaksperioder = spleisClient.hentVedtaksperioder(pid)
-                    call.respond(OK, PersonendringerResponse(repo.personendringer(vedtaksperioder.arbeidsgivere.flatMap { it.vedtaksperioder.map { it.id } })))
+                    val endringer = repo.personendringer(vedtaksperioder.arbeidsgivere.flatMap { it.vedtaksperioder.map { it.id } })
+
+                    call.respondText(ContentType.Text.Html, OK) {
+                        getResourceAsText("/personendringer.html")
+                            .replace("{{GENERATED_HTML}}", PersonendringerHtmlBuilder(vedtaksperioder, endringer).render())
+                    }
                 }
             }
             static("public") {
