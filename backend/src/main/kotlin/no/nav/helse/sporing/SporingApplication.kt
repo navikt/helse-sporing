@@ -52,7 +52,8 @@ internal class ProductionApp(private val env: Map<String, String>): SporingAppli
         clientSecret = env.getValue("AZURE_APP_CLIENT_SECRET")
     )
 
-    private val spleisClient = SpleisClient("http://spleis-api.tbd.svc.cluster.local", azureClient, env.getValue("SPLEIS_SCOPE"))
+    private val apiUrl = env["SPLEIS_API_URL"] ?: "http://spleis-api.tbd.svc.cluster.local"
+    private val spleisClient = SpleisClient(apiUrl, azureClient, env.getValue("SPLEIS_SCOPE"))
 
     private val rapidsConnection = RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
         .withKtorModule(ktorApi(repo, spleisClient))

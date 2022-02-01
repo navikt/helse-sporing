@@ -56,3 +56,5 @@ spec:
       value: earliest
     - name: SPLEIS_SCOPE
       value: {{spleisScope}}
+    - name: SPLEIS_API_URL
+      value: "https://{{spleisHostname}}"
