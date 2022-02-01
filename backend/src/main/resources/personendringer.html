@@ -10,7 +10,8 @@
         }
 
         div.tabell {
-
+            display: flex;
+            flex-direction: column;
         }
 
         div.rad {
@@ -30,20 +31,14 @@
         }
 
         div.tidslinje > div.rad {
-            display: table;
             margin-bottom: 50px;
-            table-layout: fixed;
-            width:100%;
-        }
-        div.hendelse, div.arbeidsgivere {
-            display: table-cell;
         }
 
         div.hendelse {
             border:5px solid black;
             padding-top:50px;
             flex: 0 0 auto;
-            width:200px;
+            width:250px;
             word-break: break-word;
             height:80px;
             text-align: center;
@@ -113,11 +108,11 @@
             border-bottom:2px solid white;
         }
         div.arbeidsgivere div.rad:hover {
-            border-top:2px solid aquamarine;
-            border-bottom:2px solid aquamarine;
+            border-top:2px solid darkgreen;
+            border-bottom:2px solid darkgreen;
         }
         div.vedtaksperiode:hover {
-            box-shadow:inset 0 0 0 5px aquamarine;
+            box-shadow:inset 0 0 0 5px darkgreen;
         }
 
         div.siste {
