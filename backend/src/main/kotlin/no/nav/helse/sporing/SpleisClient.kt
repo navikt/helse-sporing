@@ -2,8 +2,6 @@ package no.nav.helse.sporing
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -27,16 +25,17 @@ internal class SpleisClient(
         private val tjenestekallLog = LoggerFactory.getLogger("tjenestekall")
     }
 
-    internal fun hentVedtaksperioder(fnr: String) = objectMapper.convertValue<PersonDTO>("/api/vedtaksperioder".request(HttpMethod.Get, fnr))
+    internal fun hentVedtaksperioder(pid: String) = objectMapper.convertValue<PersonDTO>("/api/vedtaksperioder".request(HttpMethod.Get, pid))
 
-    private fun String.request(method: HttpMethod, fnr: String): JsonNode {
+    private fun String.request(method: HttpMethod, pid: String): JsonNode {
         val (responseCode, responseBody) = with(URL(baseUrl + this).openConnection() as HttpURLConnection) {
             requestMethod = method.value
 
             setRequestProperty("Authorization", "Bearer ${azureClient.getToken(accesstokenScope)}")
             setRequestProperty("Accept", "application/json")
             setRequestProperty("Content-Type", "application/json")
-            setRequestProperty("fnr", fnr)
+            if (pid.length == 11) setRequestProperty("fnr", pid)
+            else setRequestProperty("aktorId", pid)
             connectTimeout = 10000
             readTimeout = 10000
 
