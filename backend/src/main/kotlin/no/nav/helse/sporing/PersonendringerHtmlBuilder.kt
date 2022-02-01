@@ -90,7 +90,7 @@ internal class PersonendringerHtmlBuilder(private val person: PersonDTO, private
                 "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepengerSykepengehistorikk" -> "Ytelser (med Sykepengehistorikk)"
                 "Arbeidsforholdv2InntekterforsammenligningsgrunnlagInntekterforsykepengegrunnlagMedlemskap" -> "Vilkårsgrunnlag"
                 "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" -> "Ytelser (uten Sykepengehistorikk)"
-                else -> navn.split(' ').joinToString(separator = " ")
+                else -> navn.split(' ', '_').joinToString(separator = " ")
             }
         }
     }
