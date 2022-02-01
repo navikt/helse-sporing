@@ -70,7 +70,7 @@ internal class PersonendringerHtmlBuilder(person: PersonDTO, tilstandsendringer:
 
         internal fun renderHtml(sb: StringBuilder) {
             sb.appendLine("<div class='rad'>")
-            sb.appendLine("<div class='celle hendelse'><span title='$meldingId opprettet $opprettet'>${fintNavn(navn)}</span></div>")
+            sb.appendLine("<div class='celle hendelse'><span title='$meldingId opprettet $opprettet'>${fintNavn(navn)}</span><br />$meldingId</div>")
             sb.appendLine("<div class='celle arbeidsgivere'><div class='tabell'>")
             vedtaksperioder.forEach { (orgnr, perioder) ->
                 sb.appendLine("<div class='rad'>")
@@ -115,9 +115,11 @@ internal class PersonendringerHtmlBuilder(person: PersonDTO, tilstandsendringer:
             if (endretNå) classes.add("endret")
             else classes.add("uendret")
 
-            sb.appendLine("<div class='celle vedtaksperiode ${classes.joinToString(separator = " ")}'><span title='Endret $når | Periode $fom til $tom'>${tilTilstand.split('_').map(String::lowercase).map {
-                it.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-            }.joinToString(separator = " ")}</span></div>")
+            sb.append("<div class='celle vedtaksperiode ${classes.joinToString(separator = " ")}'>")
+            sb.append("<span title='Endret $når | Periode $fom til $tom'>")
+            sb.append("<a href='/tilstandsmaskin/$id' target='_blank'>")
+            sb.append(tilTilstand.split('_').map(String::lowercase).map { it.replaceFirstChar { it.titlecase() } }.joinToString(separator = " "))
+            sb.appendLine("</a></span></div>")
         }
 
         override fun equals(other: Any?) = other is Vedtaksperiode && other.id == this.id
