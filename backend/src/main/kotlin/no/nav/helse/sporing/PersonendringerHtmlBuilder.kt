@@ -70,7 +70,9 @@ internal class PersonendringerHtmlBuilder(person: PersonDTO, tilstandsendringer:
 
         internal fun renderHtml(sb: StringBuilder) {
             sb.appendLine("<div class='rad'>")
-            sb.appendLine("<div class='celle hendelse'><span title='$meldingId opprettet $opprettet'>${fintNavn(navn)}</span><br />$meldingId</div>")
+            sb.append("<div class='celle hendelse'><span title='$meldingId opprettet $opprettet'>${fintNavn(navn)}</span>")
+            if (meldingId.mostSignificantBits != 0L) sb.append("<br />$meldingId")
+            sb.appendLine("</div>")
             sb.appendLine("<div class='celle arbeidsgivere'><div class='tabell'>")
             vedtaksperioder.forEach { (orgnr, perioder) ->
                 sb.appendLine("<div class='rad'>")
