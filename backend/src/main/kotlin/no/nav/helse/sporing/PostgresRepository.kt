@@ -102,7 +102,9 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
             }
 
         private fun somPersonendring() = PersonendringDto(
-            meldingId = meldingId ?: UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            // dersom meldingId er null, nulles msb ut for å indikere at hendelsen er forfalset
+            // toString vil da se slik ut 00000000-0000-0000-893b-f741992b24a3
+            meldingId = meldingId ?: UUID(0, UUID.randomUUID().leastSignificantBits),
             navn = navn ?: fordi,
             opprettet = opprettet ?: når,
             vedtaksperiodeId = vedtaksperiodeId,
