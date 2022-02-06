@@ -6,6 +6,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
+import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
@@ -49,29 +50,79 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
     @Language("PostgreSQL")
     private val personendringer = """
         SELECT
-            a.melding_id, a.navn, a.opprettet, vt.vedtaksperiode_id, vt.naar, t.fra_tilstand, t.til_tilstand
-        FROM arsak a
-        INNER JOIN vedtaksperiode_tilstandsendring vt ON a.id = vt.arsak_id
+            a.melding_id, a.navn, a.opprettet, vt.vedtaksperiode_id, vt.naar, t.fra_tilstand, t.til_tilstand, t.fordi
+        FROM vedtaksperiode_tilstandsendring vt
+        LEFT JOIN arsak a ON a.id = vt.arsak_id
         INNER JOIN tilstandsendring t ON t.id = vt.tilstandsendring_id
         WHERE
                 vt.vedtaksperiode_id IN ({{VEDTAKSPERIODER_PLACEHOLDER}})
     """
     override fun personendringer(vedtaksperioder: List<UUID>): List<PersonendringDto> {
-        return using(sessionOf(dataSource)) { session ->
+        val endringer = using(sessionOf(dataSource)) { session ->
             session.run(queryOf(
                 personendringer.replace("{{VEDTAKSPERIODER_PLACEHOLDER}}", vedtaksperioder.joinToString { "?" }),
                 *vedtaksperioder.toTypedArray()
             ).map {
-                PersonendringDto(
-                    meldingId = UUID.fromString(it.string(1)),
-                    navn = it.string(2),
-                    opprettet = it.localDateTime(3),
+                PersonendringNullableDto(
+                    meldingId = it.stringOrNull(1)?.let { UUID.fromString(it) },
+                    navn = it.stringOrNull(2),
+                    opprettet = it.localDateTimeOrNull(3),
                     vedtaksperiodeId = UUID.fromString(it.string(4)),
                     når = it.localDateTime(5),
                     fraTilstand = it.string(6),
-                    tilTilstand = it.string(7)
+                    tilTilstand = it.string(7),
+                    fordi = it.string(8)
                 )
             }.asList)
+        }
+        return PersonendringNullableDto.tettManglendeÅrsak(endringer)
+    }
+
+    private class PersonendringNullableDto(
+        val meldingId: UUID?,
+        val navn: String?,
+        val opprettet: LocalDateTime?,
+        val vedtaksperiodeId: UUID,
+        val når: LocalDateTime,
+        val fraTilstand: String,
+        val tilTilstand: String,
+        val fordi: String
+    ) {
+        private fun finnEllerOpprettÅrsak(liksomendringer: MutableList<Pair<String, PersonendringDto>>): PersonendringDto {
+            // finn en endring basert på når-tidspunktet og "fordi", eller oppretter ny
+            return finnÅrsak(liksomendringer) ?: somPersonendring().also {
+                liksomendringer.add(this.fordi to it)
+            }
+        }
+
+        private fun finnÅrsak(liksomendringer: MutableList<Pair<String, PersonendringDto>>) =
+            liksomendringer.firstOrNull { (fordi, liksom) ->
+                val diff = Duration.between(liksom.når, this.når)
+                fordi == this.fordi && diff.toSeconds() == 0L
+            }?.second
+
+        private fun somPersonendring() = PersonendringDto(
+            meldingId = meldingId ?: UUID.randomUUID(),
+            navn = navn ?: "???????",
+            opprettet = opprettet ?: når,
+            vedtaksperiodeId = vedtaksperiodeId,
+            når = når,
+            fraTilstand = fraTilstand,
+            tilTilstand = tilTilstand
+        )
+
+        internal companion object {
+            fun tettManglendeÅrsak(liste: List<PersonendringNullableDto>): List<PersonendringDto> {
+                val liksomendringer = mutableListOf<Pair<String, PersonendringDto>>()
+                return liste
+                    .map { endring ->
+                        if (endring.meldingId == null) {
+                            endring.finnEllerOpprettÅrsak(liksomendringer)
+                        } else {
+                            endring.somPersonendring()
+                        }
+                    }
+            }
         }
     }
 
