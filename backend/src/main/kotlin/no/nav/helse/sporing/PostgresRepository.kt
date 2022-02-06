@@ -88,22 +88,22 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
         val tilTilstand: String,
         val fordi: String
     ) {
-        private fun finnEllerOpprettÅrsak(liksomendringer: MutableList<Pair<String, PersonendringDto>>): PersonendringDto {
+        private fun finnEllerOpprettÅrsak(liksomendringer: MutableList<PersonendringDto>): PersonendringDto {
             // finn en endring basert på når-tidspunktet og "fordi", eller oppretter ny
             return finnÅrsak(liksomendringer) ?: somPersonendring().also {
-                liksomendringer.add(this.fordi to it)
+                liksomendringer.add(it)
             }
         }
 
-        private fun finnÅrsak(liksomendringer: MutableList<Pair<String, PersonendringDto>>) =
-            liksomendringer.firstOrNull { (fordi, liksom) ->
+        private fun finnÅrsak(liksomendringer: MutableList<PersonendringDto>) =
+            liksomendringer.firstOrNull { liksom ->
                 val diff = Duration.between(liksom.når, this.når)
-                fordi == this.fordi && diff.toSeconds() == 0L
-            }?.second
+                liksom.navn == this.fordi && diff.toSeconds() == 0L
+            }
 
         private fun somPersonendring() = PersonendringDto(
-            meldingId = meldingId ?: UUID.randomUUID(),
-            navn = navn ?: "???????",
+            meldingId = meldingId ?: UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            navn = navn ?: fordi,
             opprettet = opprettet ?: når,
             vedtaksperiodeId = vedtaksperiodeId,
             når = når,
@@ -113,7 +113,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
 
         internal companion object {
             fun tettManglendeÅrsak(liste: List<PersonendringNullableDto>): List<PersonendringDto> {
-                val liksomendringer = mutableListOf<Pair<String, PersonendringDto>>()
+                val liksomendringer = mutableListOf<PersonendringDto>()
                 return liste
                     .map { endring ->
                         if (endring.meldingId == null) {
