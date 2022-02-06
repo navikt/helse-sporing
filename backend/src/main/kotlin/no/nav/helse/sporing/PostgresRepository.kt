@@ -145,7 +145,9 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
     private val insertVedtaksperiodeTransitionStatement = """
         INSERT INTO vedtaksperiode_tilstandsendring (melding_id, vedtaksperiode_id, tilstandsendring_id, arsak_id, naar)
         VALUES (:meldingId, :vedtaksperiodeId, :tilstandsendringId, :arsakId, :naar)
-        ON CONFLICT (melding_id) DO NOTHING
+        ON CONFLICT (melding_id) DO 
+        UPDATE SET arsak_id = EXCLUDED.arsak_id 
+        WHERE vedtaksperiode_tilstandsendring.arsak_id IS NULL 
     """
     private fun kobleVedtaksperiodeTilTransisjon(session: Session, meldingId: UUID, tilstandsendringId: Long, årsakId: Long, vedtaksperiodeId: UUID, når: LocalDateTime) {
         session.run(
