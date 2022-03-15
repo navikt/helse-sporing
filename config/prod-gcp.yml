@@ -1,4 +1,4 @@
 kafkaPool: nav-prod
 ingress: https://sporing.intern.nav.no
-spleisScope: api://prod-fss.tbd.spleis-api/.default
-spleisHostname: spleis-api.prod-fss-pub.nais.io
+spleisScope: api://prod-gcp.tbd.spleis-api/.default
+spleisHostname: spleis-api.intern.nav.no 
