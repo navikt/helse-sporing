@@ -19,7 +19,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
     private val dataSource by lazy(dataSourceProvider)
 
     override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime, årsak: Årsak) {
-        using(sessionOf(dataSource, returnGeneratedKey = true)) { session ->
+        sessionOf(dataSource, returnGeneratedKey = true).use { session ->
             session.transaction { txSession ->
                 val årsakId = lagreÅrsak(txSession, årsak.id, årsak.navn, årsak.opprettet) ?: return@transaction log.info("tilstandsendring ble ikke lagret pga manglende årsakId")
                 val tilstandsendringId = lagreTransisjon(txSession, fraTilstand, tilTilstand, fordi, når) ?: return@transaction log.info("tilstandsendring ble ikke lagret pga manglende tilstandsendringId")
@@ -34,7 +34,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
         INNER JOIN vedtaksperiode_tilstandsendring vt on t.id = vt.tilstandsendring_id
         GROUP BY t.id
     """
-    override fun tilstandsendringer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>) = using(sessionOf(dataSource)) {
+    override fun tilstandsendringer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>) = sessionOf(dataSource).use {
         filtrer(fordi.map(String::lowercase), etter, ignorerTilstand.map(String::lowercase), ignorerFordi.map(String::lowercase), it.run(queryOf(selectTransitionStatemenet).map { row ->
             TilstandsendringDto(
                 fraTilstand = row.string("fra_tilstand"),
@@ -58,7 +58,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
                 vt.vedtaksperiode_id IN ({{VEDTAKSPERIODER_PLACEHOLDER}})
     """
     override fun personendringer(vedtaksperioder: List<UUID>): List<PersonendringDto> {
-        val endringer = using(sessionOf(dataSource)) { session ->
+        val endringer = sessionOf(dataSource).use { session ->
             session.run(queryOf(
                 personendringer.replace("{{VEDTAKSPERIODER_PLACEHOLDER}}", vedtaksperioder.joinToString { "?" }),
                 *vedtaksperioder.toTypedArray()
@@ -144,7 +144,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
         WHERE vt.vedtaksperiode_id = :vedtaksperiodeId
         ORDER BY vt.naar ASC, vt.id ASC
     """
-    override fun tilstandsendringer(vedtaksperiodeId: UUID) = using(sessionOf(dataSource)) {
+    override fun tilstandsendringer(vedtaksperiodeId: UUID) = sessionOf(dataSource).use {
         it.run(queryOf(selectVedtaksperiodeTransitionStatemenet, mapOf(
             "vedtaksperiodeId" to vedtaksperiodeId
         )).map { row ->
