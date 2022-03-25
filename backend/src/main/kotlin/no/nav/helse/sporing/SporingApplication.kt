@@ -7,17 +7,16 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.server.cio.*
 import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
-import java.net.ConnectException
+import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
-import kotlin.reflect.KClass
 
 internal interface SporingApplication {
     fun start()
@@ -36,15 +35,14 @@ internal class ProductionApp(private val env: Map<String, String>): SporingAppli
             env.getValue("NAIS_DATABASE_SPORING_SPORING_USERNAME")
         )
         password = env.getValue("NAIS_DATABASE_SPORING_SPORING_PASSWORD")
-        maximumPoolSize = 3
-        minimumIdle = 1
-        idleTimeout = 10001
-        connectionTimeout = 1000
-        maxLifetime = 30001
+        maximumPoolSize = 1
+        connectionTimeout = Duration.ofSeconds(15).toMillis()
+        maxLifetime = Duration.ofMinutes(30).toMillis()
+        initializationFailTimeout = Duration.ofMinutes(1).toMillis()
     }
 
     private val dataSourceInitializer = DataSourceInitializer(hikariConfig)
-    private val repo = PostgresRepository(dataSourceInitializer::getDataSource)
+    private val repo = PostgresRepository(dataSourceInitializer::dataSource)
 
     private val azureClient = AzureClient(
         tokenEndpoint = env.getValue("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
@@ -68,48 +66,22 @@ internal class ProductionApp(private val env: Map<String, String>): SporingAppli
     override fun stop() = rapidsConnection.stop()
 
     private class DataSourceInitializer(private val hikariConfig: HikariConfig) : RapidsConnection.StatusListener {
-        private lateinit var dataSource: DataSource
-
-        fun getDataSource(): DataSource {
-            check(this::dataSource.isInitialized) { "The data source has not been initialized yet!" }
-            return dataSource
+        private val dataSource: DataSource by lazy {
+            HikariDataSource(hikariConfig)
         }
 
+        fun dataSource() = dataSource
+
         override fun onStartup(rapidsConnection: RapidsConnection) {
-            while (!initializeDataSource()) {
-                log.info("Database is not available yet, trying again")
-                Thread.sleep(250)
-            }
             migrate(dataSource)
         }
 
-        private fun initializeDataSource(): Boolean {
-            try {
-                dataSource = HikariDataSource(hikariConfig)
-                return true
-            } catch (err: Exception) {
-                err.allow(ConnectException::class)
-            }
-            return false
-        }
-
         private companion object {
-            fun Throwable.allow(clazz: KClass<out Throwable>) {
-                if (causes().any { clazz.isInstance(it) }) return
-                throw this
-            }
-
-            fun Throwable.causes(): List<Throwable> {
-                return mutableListOf<Throwable>(this).apply {
-                    var nextError: Throwable? = cause
-                    while (nextError != null) {
-                        add(nextError)
-                        nextError = nextError.cause
-                    }
-                }
-            }
             fun migrate(dataSource: DataSource) {
-                Flyway.configure().dataSource(dataSource).load().migrate()
+                Flyway.configure()
+                    .dataSource(dataSource)
+                    .load()
+                    .migrate()
             }
         }
     }
@@ -117,14 +89,14 @@ internal class ProductionApp(private val env: Map<String, String>): SporingAppli
 
 internal class LocalApp(private val serverPort: Int = 4000): SporingApplication {
     private val repository = FilesystemRepository("/tilstandsmaskin.json")
-    private val server: NettyApplicationEngine
+    private val server: CIOApplicationEngine
     private val environment = applicationEngineEnvironment {
         connector { port = serverPort }
         module(ktorApi(repository, SpleisClient("http://foo.bar", AzureClient("http://bar.foo", "no", "thanks"), "scope")))
     }
 
     init {
-        server = embeddedServer(Netty, environment)
+        server = embeddedServer(CIO, environment)
     }
 
     override fun start() {

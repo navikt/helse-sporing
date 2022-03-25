@@ -10,11 +10,11 @@ repositories {
 val ktorVersion = "1.6.7"
 val flywayVersion = "8.4.1"
 val hikariVersion = "5.0.1"
-val jacksonVersion = "2.12.4"
+val jacksonVersion = "2.13.2"
 val kotliqueryVersion = "1.6.0"
 val junitJupiterVersion = "5.8.2"
 val testcontainersVersion = "1.16.2"
-val rapidsAndRiversVersion = "rapids-and-rivers:2022.01.19-09.53.b526ca84a9e4"
+val rapidsAndRiversVersion = "rapids-and-rivers:2022.03.25-09.17.0628678a7192"
 
 dependencies {
     implementation(kotlin("stdlib"))
