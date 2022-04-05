@@ -14,7 +14,7 @@ val jacksonVersion = "2.13.2"
 val kotliqueryVersion = "1.6.0"
 val junitJupiterVersion = "5.8.2"
 val testcontainersVersion = "1.16.2"
-val rapidsAndRiversVersion = "rapids-and-rivers:2022.04.05-08.01.237f724ae572"
+val rapidsAndRiversVersion = "2022.04.05-09.40.11a466d7ac70"
 
 dependencies {
     implementation(kotlin("stdlib"))
