@@ -1,11 +1,11 @@
 package no.nav.helse.sporing
 
-import io.ktor.application.*
-import io.ktor.features.*
+import io.ktor.server.application.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.request.*
-import io.ktor.response.*
+import io.ktor.server.plugins.callid.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.prometheus.client.Counter
 import io.prometheus.client.Histogram
 import org.slf4j.Logger
