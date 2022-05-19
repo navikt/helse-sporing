@@ -7,14 +7,14 @@ repositories {
     maven("https://jitpack.io")
 }
 
-val ktorVersion = "2.0.0"
+val ktorVersion = "2.0.1"
 val ktorJacksonVersion = "1.6.8"
 val flywayVersion = "8.4.1"
 val hikariVersion = "5.0.1"
 val kotliqueryVersion = "1.6.0"
 val junitJupiterVersion = "5.8.2"
 val testcontainersVersion = "1.16.2"
-val rapidsAndRiversVersion = "2022.04.21-09.34.08966130226f"
+val rapidsAndRiversVersion = "2022.05.19-14.18.e3dc97b518d8"
 
 dependencies {
     implementation(kotlin("stdlib"))
