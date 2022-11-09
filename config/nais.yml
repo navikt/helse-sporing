@@ -32,7 +32,7 @@ spec:
     enabled: true
   gcp:
     sqlInstances:
-      - type: POSTGRES_14
+      - type: POSTGRES_12
         diskAutoresize: true
         databases:
           - name: sporing
