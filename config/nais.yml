@@ -33,7 +33,7 @@ spec:
   gcp:
     sqlInstances:
       - type: POSTGRES_12
-        tier: db-custom-4-15
+        tier: db-4-15
         diskAutoresize: true
         databases:
           - name: sporing
