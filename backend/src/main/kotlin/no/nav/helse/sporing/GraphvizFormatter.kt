@@ -175,7 +175,8 @@ internal class GraphvizFormatter private constructor(private val transitionForma
     private class EventFormatter : Formatter {
         private val events = mapOf(
             "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepengerSykepengehistorikk" to "Ytelser (med sykepengehistorikk)",
-            "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser (uten sykepengehistorikk)",
+            "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
+            "ArbeidsavklaringspengerDagpengerForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
             "InntekterforsammenligningsgrunnlagMedlemskapOpptjening" to "Vilkårsgrunnlag",
             "Arbeidsforholdv2InntekterforsammenligningsgrunnlagInntekterforsykepengegrunnlagMedlemskap" to "Vilkårsgrunnlag"
         )
