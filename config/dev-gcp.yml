@@ -2,3 +2,4 @@ kafkaPool: nav-dev
 ingress: https://sporing.intern.dev.nav.no
 spleisScope: api://dev-gcp.tbd.spleis-api/.default
 spleisHostname: spleis-api.intern.dev.nav.no
+sqlInstanceTier: db-f1-micro
