@@ -22,9 +22,7 @@ import java.util.*
 
 fun main() {
     val env = System.getenv()
-    val isLocal = env.getOrDefault("localDevelopment", "false").toBoolean()
-    val app = if (isLocal) LocalApp() else ProductionApp(env)
-    app.start()
+    ProductionApp(env).start()
 }
 
 internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClient): Application.() -> Unit {
@@ -107,9 +105,7 @@ internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClien
                     }
                 }
             }
-            static("public") {
-                resources("public")
-            }
+            staticResources("public", "public")
         }
     }
 }

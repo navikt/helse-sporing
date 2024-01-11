@@ -5,16 +5,18 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import io.ktor.http.*
 import no.nav.helse.sporing.person.PersonDTO
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 
 internal class SpleisClient(
     private val baseUrl: String,
-    private val azureClient: AzureClient,
+    private val azureClient: AzureTokenProvider,
     private val accesstokenScope: String
 ) {
 
@@ -28,10 +30,10 @@ internal class SpleisClient(
     internal fun hentVedtaksperioder(pid: String) = objectMapper.convertValue<PersonDTO>("/api/vedtaksperioder".request(HttpMethod.Get, pid))
 
     private fun String.request(method: HttpMethod, pid: String): JsonNode {
-        val (responseCode, responseBody) = with(URL(baseUrl + this).openConnection() as HttpURLConnection) {
+        val (responseCode, responseBody) = with(URI(baseUrl + this).toURL().openConnection() as HttpURLConnection) {
             requestMethod = method.value
 
-            setRequestProperty("Authorization", "Bearer ${azureClient.getToken(accesstokenScope)}")
+            setRequestProperty("Authorization", "Bearer ${azureClient.bearerToken(accesstokenScope).token}")
             setRequestProperty("Accept", "application/json")
             setRequestProperty("Content-Type", "application/json")
             if (pid.length == 11) setRequestProperty("fnr", pid)
