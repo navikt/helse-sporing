@@ -46,8 +46,8 @@ spec:
     - {{ingress}}
   accessPolicy:
     outbound:
-      external:
-        - host: {{spleisHostname}}
+      rules:
+        - application: spleis-api
   env:
     - name: KAFKA_CONSUMER_GROUP_ID
       value: tbd-sporing-v1
@@ -58,4 +58,4 @@ spec:
     - name: SPLEIS_SCOPE
       value: {{spleisScope}}
     - name: SPLEIS_API_URL
-      value: "https://{{spleisHostname}}"
+      value: http://spleis-api
