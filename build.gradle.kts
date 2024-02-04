@@ -1,10 +1,10 @@
-val ktorVersion = "2.3.7"
+val ktorVersion = "2.3.8"
 val flywayVersion = "8.4.1"
 val hikariVersion = "5.0.1"
 val kotliqueryVersion = "1.9.0"
 val junitJupiterVersion = "5.10.0"
 val testcontainersVersion = "1.19.0"
-val rapidsAndRiversVersion = "2024010209171704183456.6d035b91ffb4"
+val rapidsAndRiversVersion = "2024020422121707081126.d834a5d05bb2"
 val tbdLibsVersion = "2024.01.09-20.20-d52bae29"
 
 plugins {
