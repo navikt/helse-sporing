@@ -4,7 +4,7 @@ val hikariVersion = "5.0.1"
 val kotliqueryVersion = "1.9.0"
 val junitJupiterVersion = "5.10.0"
 val testcontainersVersion = "1.19.0"
-val rapidsAndRiversVersion = "2024020422121707081126.d834a5d05bb2"
+val rapidsAndRiversVersion = "2024020507581707116327.1c34df474331"
 val tbdLibsVersion = "2024.01.09-20.20-d52bae29"
 
 plugins {
