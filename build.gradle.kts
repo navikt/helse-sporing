@@ -3,7 +3,7 @@ val flywayVersion = "8.4.1"
 val hikariVersion = "5.0.1"
 val kotliqueryVersion = "1.9.0"
 val junitJupiterVersion = "5.10.2"
-val testcontainersVersion = "1.19.0"
+val testcontainersVersion = "1.19.5"
 val rapidsAndRiversVersion = "2024020507581707116327.1c34df474331"
 val tbdLibsVersion = "2024.01.09-20.20-d52bae29"
 
