@@ -1,4 +1,5 @@
 kafkaPool: nav-prod
-ingress: https://sporing.intern.nav.no
+ingress1: https://sporing.intern.nav.no
+ingress2: https://sporing.ansatt.nav.no
 spleisScope: api://prod-gcp.tbd.spleis-api/.default
 sqlInstanceTier: db-custom-4-15360

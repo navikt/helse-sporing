@@ -46,7 +46,8 @@ spec:
   kafka:
     pool: {{kafkaPool}}
   ingresses:
-    - {{ingress}}
+    - {{ingress1}}
+    - {{ingress2}}
   accessPolicy:
     outbound:
       rules:
