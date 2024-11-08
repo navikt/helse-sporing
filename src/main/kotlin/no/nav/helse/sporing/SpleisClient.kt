@@ -36,8 +36,7 @@ internal class SpleisClient(
             setRequestProperty("Authorization", "Bearer ${azureClient.bearerToken(accesstokenScope).token}")
             setRequestProperty("Accept", "application/json")
             setRequestProperty("Content-Type", "application/json")
-            if (pid.length == 11) setRequestProperty("fnr", pid)
-            else setRequestProperty("aktorId", pid)
+            setRequestProperty("fnr", pid)
             connectTimeout = 10000
             readTimeout = 10000
 
