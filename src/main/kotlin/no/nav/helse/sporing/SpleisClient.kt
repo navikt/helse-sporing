@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
+import com.github.navikt.tbd_libs.result_object.getOrThrow
 import io.ktor.http.*
 import no.nav.helse.sporing.person.PersonDTO
 import org.slf4j.LoggerFactory
@@ -33,7 +34,7 @@ internal class SpleisClient(
         val (responseCode, responseBody) = with(URI(baseUrl + this).toURL().openConnection() as HttpURLConnection) {
             requestMethod = method.value
 
-            setRequestProperty("Authorization", "Bearer ${azureClient.bearerToken(accesstokenScope).token}")
+            setRequestProperty("Authorization", "Bearer ${azureClient.bearerToken(accesstokenScope).getOrThrow().token}")
             setRequestProperty("Accept", "application/json")
             setRequestProperty("Content-Type", "application/json")
             setRequestProperty("fnr", pid)

@@ -1,19 +1,12 @@
 package no.nav.helse.sporing
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.server.application.*
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.serialization.jackson.*
+import io.ktor.server.application.*
 import io.ktor.server.http.content.*
-import io.ktor.server.plugins.callid.*
-import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
@@ -27,19 +20,6 @@ fun main() {
 
 internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClient): Application.() -> Unit {
     return {
-        install(ContentNegotiation) {
-            jackson {
-                registerModule(JavaTimeModule())
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            }
-        }
-        install(CallId) {
-            generate {
-                UUID.randomUUID().toString()
-            }
-        }
-        requestResponseTracing(log)
         routing {
             tilstandsmaskinRoute("/tilstandsmaskin.json") { fordi, etter, ignorerTilstand, ignorerFordi ->
                 call.respond(
@@ -122,7 +102,7 @@ private fun numericalOnlyOrNull(str: String): String? {
 
 private fun Routing.tilstandsmaskinRoute(
     uri: String,
-    body: suspend PipelineContext<Unit, ApplicationCall>.(fordi: List<String>, etter: LocalDateTime?, ignorer: List<String>, ignorerFordi: List<String>) -> Unit
+    body: suspend RoutingContext.(fordi: List<String>, etter: LocalDateTime?, ignorer: List<String>, ignorerFordi: List<String>) -> Unit
 ) {
     get(uri) {
         withContext(Dispatchers.IO) {
@@ -146,7 +126,7 @@ private fun ApplicationCall.queryParam(name: String): List<String> =
 
 private fun Routing.vedtaksperiodeRoute(
     uri: String,
-    body: suspend PipelineContext<Unit, ApplicationCall>.(vedtaksperiodeId: UUID) -> Unit
+    body: suspend RoutingContext.(vedtaksperiodeId: UUID) -> Unit
 ) {
     get(uri) {
         withContext(Dispatchers.IO) {

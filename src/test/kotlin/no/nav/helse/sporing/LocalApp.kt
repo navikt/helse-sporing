@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.navikt.tbd_libs.azure.AzureToken
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
+import com.github.navikt.tbd_libs.result_object.Result
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import java.time.LocalDateTime
@@ -19,22 +20,24 @@ fun main() {
 
 internal class LocalApp(private val serverPort: Int = 4000): SporingApplication {
     private val repository = FilesystemRepository("/tilstandsmaskin.json")
-    private val server: CIOApplicationEngine
-    private val environment = applicationEngineEnvironment {
-        connector { port = serverPort }
-        module(ktorApi(repository, SpleisClient("http://foo.bar", object : AzureTokenProvider {
-            override fun bearerToken(scope: String): AzureToken {
-                throw NotImplementedError("ikke implementert")
-            }
-
-            override fun onBehalfOfToken(scope: String, token: String): AzureToken {
-                throw NotImplementedError("ikke implementert")
-            }
-        }, "scope")))
-    }
+    private val server: EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration>
+    private val environment = applicationEnvironment {}
 
     init {
-        server = embeddedServer(CIO, environment)
+        server = embeddedServer(CIO,
+            environment = environment,
+            configure = { connector { port = serverPort } }
+        ) {
+            ktorApi(repository, SpleisClient("http://foo.bar", object : AzureTokenProvider {
+                override fun bearerToken(scope: String): Result<AzureToken> {
+                    throw NotImplementedError("ikke implementert")
+                }
+
+                override fun onBehalfOfToken(scope: String, token: String): Result<AzureToken> {
+                    throw NotImplementedError("ikke implementert")
+                }
+            }, "scope"))
+        }
     }
 
     override fun start() {

@@ -1,11 +1,13 @@
 package no.nav.helse.sporing
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
+import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import net.logstash.logback.argument.StructuredArguments.keyValue
-import no.nav.helse.rapids_rivers.*
 import no.nav.helse.sporing.Event.eventName
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
 import java.util.*
 
 internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository: TilstandsendringRepository) {
@@ -25,11 +27,11 @@ internal class Tilstandsendringer(rapidsConnection: RapidsConnection, repository
                     require(forrigeTilstand.textValue() != it["gjeldendeTilstand"].textValue())
                 }
             }
-            .onError { problems, _ ->
+            .onError { problems, _, _ ->
                 log.error("Forstod ikke vedtaksperiode_endret (Se sikker logg for detaljer)")
                 sikkerLog.error("Forstod ikke vedtaksperiode_endret:\n${problems.toExtendedReport()}")
             }
-            .onSuccess { message, _ ->
+            .onSuccess { message, _, _, _ ->
                 val fraTilstand = message["forrigeTilstand"].asText()
                 val tilTilstand = message["gjeldendeTilstand"].asText()
                 val eventName = eventName(message)

@@ -1,11 +1,10 @@
-val ktorVersion = "2.3.8"
 val flywayVersion = "8.4.1"
 val hikariVersion = "5.0.1"
 val kotliqueryVersion = "1.9.0"
 val junitJupiterVersion = "5.11.3"
 val testcontainersVersion = "1.19.5"
-val rapidsAndRiversVersion = "2024020507581707116327.1c34df474331"
-val tbdLibsVersion = "2024.01.09-20.20-d52bae29"
+val rapidsAndRiversVersion = "2024111211071731406062.648687519469"
+val tbdLibsVersion = "2024.11.12-11.09-16cf2599"
 
 plugins {
     kotlin("jvm") version "2.0.21"
@@ -31,21 +30,19 @@ repositories {
 dependencies {
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     implementation("com.github.navikt.tbd-libs:azure-token-client-default:$tbdLibsVersion")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-server-call-id:$ktorVersion")
 
     implementation("org.postgresql:postgresql:42.7.2")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
+    testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 kotlin {

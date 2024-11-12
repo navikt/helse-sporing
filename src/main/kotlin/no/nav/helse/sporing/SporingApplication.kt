@@ -1,10 +1,10 @@
 package no.nav.helse.sporing
 
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -41,9 +41,12 @@ internal class ProductionApp(private val env: Map<String, String>): SporingAppli
     private val apiUrl = env["SPLEIS_API_URL"] ?: "http://spleis-api.tbd.svc.cluster.local"
     private val spleisClient = SpleisClient(apiUrl, azureClient, env.getValue("SPLEIS_SCOPE"))
 
-    private val rapidsConnection = RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env))
-        .withKtorModule(ktorApi(repo, spleisClient))
-        .build()
+    private val rapidsConnection = RapidApplication.create(
+        env = env,
+        builder = {
+            withKtorModule(ktorApi(repo, spleisClient))
+        }
+    )
         .apply {
             register(dataSourceInitializer)
             Tilstandsendringer(this, repo)
