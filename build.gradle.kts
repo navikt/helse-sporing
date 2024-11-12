@@ -8,7 +8,7 @@ val rapidsAndRiversVersion = "2024020507581707116327.1c34df474331"
 val tbdLibsVersion = "2024.01.09-20.20-d52bae29"
 
 plugins {
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "2.0.21"
 }
 
 repositories {
