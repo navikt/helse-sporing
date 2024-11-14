@@ -17,8 +17,8 @@ internal class Forkastinger(rapidsConnection: RapidsConnection, repository: Tils
     }
     init {
         River(rapidsConnection)
+            .precondition { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
             .validate {
-                it.demandValue("@event_name", "vedtaksperiode_forkastet")
                 it.requireKey("@id", "@forårsaket_av.id", "@forårsaket_av.event_name", "vedtaksperiodeId", "tilstand")
                 it.interestedIn("@forårsaket_av.behov")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
