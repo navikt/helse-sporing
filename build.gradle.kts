@@ -1,5 +1,5 @@
 val flywayVersion = "8.4.1"
-val hikariVersion = "5.0.1"
+val hikariCPVersion = "6.1.0"
 val kotliqueryVersion = "1.9.0"
 val junitJupiterVersion = "5.11.3"
 val testcontainersVersion = "1.19.5"
@@ -32,7 +32,7 @@ dependencies {
     implementation("com.github.navikt.tbd-libs:azure-token-client-default:$tbdLibsVersion")
 
     implementation("org.postgresql:postgresql:42.7.2")
-    implementation("com.zaxxer:HikariCP:$hikariVersion")
+    implementation("com.zaxxer:HikariCP:$hikariCPVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
 
