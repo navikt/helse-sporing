@@ -27,7 +27,7 @@ internal class ProductionApp(private val env: Map<String, String>): SporingAppli
             env.getValue("NAIS_DATABASE_SPORING_SPORING_USERNAME")
         )
         password = env.getValue("NAIS_DATABASE_SPORING_SPORING_PASSWORD")
-        maximumPoolSize = 1
+        maximumPoolSize = 2
         connectionTimeout = Duration.ofSeconds(15).toMillis()
         maxLifetime = Duration.ofMinutes(30).toMillis()
         initializationFailTimeout = Duration.ofMinutes(1).toMillis()
