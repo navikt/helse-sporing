@@ -1,23 +1,24 @@
 package no.nav.helse.sporing
 
-import PostgresDatabase
+import com.github.navikt.tbd_libs.test_support.TestDataSource
+import databaseContainer
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.BeforeEach
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal abstract class AbstractDatabaseTest {
 
+    private lateinit var testDataSource: TestDataSource
+    protected val dataSource get() = testDataSource.ds
     protected lateinit var repository: PostgresRepository
 
-    @BeforeAll
-    fun createDatabase() {
-        PostgresDatabase.start()
-        repository = PostgresRepository { PostgresDatabase.connection() }
+    @BeforeEach
+    fun setup() {
+        testDataSource = databaseContainer.nyTilkobling()
+        repository = PostgresRepository(testDataSource::ds)
     }
 
     @AfterEach
-    fun resetSchema() {
-        PostgresDatabase.reset()
+    fun cleanup() {
+        databaseContainer.droppTilkobling(testDataSource)
     }
 }

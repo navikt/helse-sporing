@@ -1,17 +1,13 @@
 package no.nav.helse.sporing
 
-import PostgresDatabase
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import kotliquery.using
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import java.time.LocalDateTime
 import java.util.*
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class MigrationTest : AbstractDatabaseTest() {
 
     @Test
@@ -47,7 +43,7 @@ internal class MigrationTest : AbstractDatabaseTest() {
         assertTrue(tilstandsendringer.first().sistegang(førstegang))
     }
 
-    private fun tilstandsendringer() = using(sessionOf(PostgresDatabase.connection())) {
+    private fun tilstandsendringer() = sessionOf(dataSource).use {
         it.run(queryOf("SELECT * FROM tilstandsendring ORDER BY id ASC").map {
             Tilstandsendring(it.string("fra_tilstand"), it.string("til_tilstand"), it.string("fordi"), it.localDateTime("forste_gang"), it.localDateTime("siste_gang"))
         }.asList)

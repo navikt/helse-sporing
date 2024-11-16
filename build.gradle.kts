@@ -2,9 +2,8 @@ val flywayVersion = "10.21.0"
 val hikariCPVersion = "6.1.0"
 val kotliqueryVersion = "1.9.0"
 val junitJupiterVersion = "5.11.3"
-val testcontainersVersion = "1.19.5"
 val rapidsAndRiversVersion = "2024111509181731658731.11009b44c672"
-val tbdLibsVersion = "2024.11.15-09.09-08ca346b"
+val tbdLibsVersion = "2024.11.16-11.06-2a807bca"
 val postgresqlVersion = "42.7.4"
 
 plugins {
@@ -38,9 +37,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
     testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
-    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
-    testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
-    testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
+    testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:$tbdLibsVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
