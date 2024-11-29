@@ -1,9 +1,19 @@
 package no.nav.helse.sporing
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
+import com.github.navikt.tbd_libs.naisful.naisApp
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.request.header
+import io.micrometer.core.instrument.Clock
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.nav.helse.rapids_rivers.RapidApplication
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
@@ -40,11 +50,25 @@ internal class ProductionApp(private val env: Map<String, String>): SporingAppli
 
     private val apiUrl = env["SPLEIS_API_URL"] ?: "http://spleis-api.tbd.svc.cluster.local"
     private val spleisClient = SpleisClient(apiUrl, azureClient, env.getValue("SPLEIS_SCOPE"))
-
+    private val meterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT, PrometheusRegistry.defaultRegistry, Clock.SYSTEM)
     private val rapidsConnection = RapidApplication.create(
         env = env,
+        meterRegistry = meterRegistry,
         builder = {
-            withKtorModule(ktorApi(repo, spleisClient))
+            withKtor { preStopHook, rapid ->
+                naisApp(
+                    meterRegistry = meterRegistry,
+                    objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS),
+                    applicationLogger = log,
+                    callLogger = LoggerFactory.getLogger("no.nav.helse.sporing.CallLogging"),
+                    naisEndpoints = com.github.navikt.tbd_libs.naisful.NaisEndpoints.Default,
+                    aliveCheck = rapid::isReady,
+                    readyCheck = rapid::isReady,
+                    preStopHook = preStopHook::handlePreStopRequest
+                ) {
+                    ktorApi(repo, spleisClient)
+                }
+            }
         }
     )
         .apply {

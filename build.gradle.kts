@@ -2,7 +2,7 @@ val flywayVersion = "10.21.0"
 val hikariCPVersion = "6.1.0"
 val kotliqueryVersion = "1.9.0"
 val junitJupiterVersion = "5.11.3"
-val rapidsAndRiversVersion = "2024112511071732529266.253c42b70448"
+val rapidsAndRiversVersion = "2024112911471732877250.f6df6f41226b"
 val tbdLibsVersion = "2024.11.25-10.59-6f263a10"
 val postgresqlVersion = "42.7.4"
 
@@ -29,6 +29,7 @@ repositories {
 
 dependencies {
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
+    implementation("com.github.navikt.tbd-libs:naisful-app:$tbdLibsVersion")
     implementation("com.github.navikt.tbd-libs:azure-token-client-default:$tbdLibsVersion")
 
     implementation("org.postgresql:postgresql:$postgresqlVersion")
