@@ -64,10 +64,9 @@ internal class ProductionApp(private val env: Map<String, String>): SporingAppli
                     naisEndpoints = com.github.navikt.tbd_libs.naisful.NaisEndpoints.Default,
                     aliveCheck = rapid::isReady,
                     readyCheck = rapid::isReady,
-                    preStopHook = preStopHook::handlePreStopRequest
-                ) {
-                    ktorApi(repo, spleisClient)
-                }
+                    preStopHook = preStopHook::handlePreStopRequest,
+                    applicationModule = ktorApi(repo, spleisClient)
+                )
             }
         }
     )
