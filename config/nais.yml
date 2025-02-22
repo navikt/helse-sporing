@@ -34,7 +34,7 @@ spec:
     enabled: true
   gcp:
     sqlInstances:
-      - type: POSTGRES_15
+      - type: POSTGRES_17
         tier: {{sqlInstanceTier}}
         diskAutoresize: true
         databases:
