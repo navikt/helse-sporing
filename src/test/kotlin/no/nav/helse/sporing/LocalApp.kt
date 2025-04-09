@@ -12,36 +12,27 @@ import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 fun main() {
     LocalApp().start()
 }
 
-internal class LocalApp(private val serverPort: Int = 4000): SporingApplication {
+internal class LocalApp(serverPort: Int = 4000): SporingApplication {
     private val repository = FilesystemRepository("/tilstandsmaskin.json")
-    private val server: EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration>
-    private val environment = applicationEnvironment {}
+    private val server = embeddedServer(CIO, port = serverPort) {
+        ktorApi(repository, SpleisClient("http://foo.bar", object : AzureTokenProvider {
+            override fun bearerToken(scope: String): Result<AzureToken> {
+                throw NotImplementedError("ikke implementert")
+            }
 
-    init {
-        server = embeddedServer(CIO,
-            environment = environment,
-            configure = { connector { port = serverPort } }
-        ) {
-            ktorApi(repository, SpleisClient("http://foo.bar", object : AzureTokenProvider {
-                override fun bearerToken(scope: String): Result<AzureToken> {
-                    throw NotImplementedError("ikke implementert")
-                }
-
-                override fun onBehalfOfToken(scope: String, token: String): Result<AzureToken> {
-                    throw NotImplementedError("ikke implementert")
-                }
-            }, "scope"))
-        }
+            override fun onBehalfOfToken(scope: String, token: String): Result<AzureToken> {
+                throw NotImplementedError("ikke implementert")
+            }
+        }, "scope"))()
     }
 
     override fun start() {
-        server.start(wait = false)
+        server.start(wait = true)
     }
     override fun stop() = server.stop(0, 0)
 
@@ -76,7 +67,7 @@ internal class LocalApp(private val serverPort: Int = 4000): SporingApplication 
         }
 
         private fun getResourceAsText(path: String): String {
-            return object {}.javaClass.getResource(path).readText()
+            return object {}.javaClass.getResource(path)!!.readText()
         }
     }
 
