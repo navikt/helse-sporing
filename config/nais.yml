@@ -51,6 +51,8 @@ spec:
   accessPolicy:
     outbound:
       rules:
+        - application: logging
+          namespace: nais-system
         - application: spleis-api
   env:
     - name: KAFKA_CONSUMER_GROUP_ID
