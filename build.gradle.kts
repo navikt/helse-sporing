@@ -7,7 +7,7 @@ val tbdLibsVersion = "2025.08.07-09.55-15719a86"
 val postgresqlVersion = "42.7.5"
 
 plugins {
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.2.10"
 }
 
 repositories {
