@@ -30,9 +30,13 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
 
     @Language("PostgreSQL")
     private val selectTransitionStatemenet = """
-        SELECT t.*, count(1) as count FROM tilstandsendring t
-        INNER JOIN vedtaksperiode_tilstandsendring vt on t.id = vt.tilstandsendring_id
-        GROUP BY t.id
+        SELECT t.*, vt.count
+        FROM tilstandsendring t
+        JOIN (
+            SELECT tilstandsendring_id, count(*) AS count
+            FROM vedtaksperiode_tilstandsendring
+            GROUP BY tilstandsendring_id
+        ) vt ON vt.tilstandsendring_id = t.id;
     """
     override fun tilstandsendringer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>) = sessionOf(dataSource).use {
         filtrer(fordi.map(String::lowercase), etter, ignorerTilstand.map(String::lowercase), ignorerFordi.map(String::lowercase), it.run(queryOf(selectTransitionStatemenet).map { row ->
