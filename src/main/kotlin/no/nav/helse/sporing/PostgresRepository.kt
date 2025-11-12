@@ -49,7 +49,7 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
                 TilstandsendringDto(
                     fraTilstand = row.string("fra_tilstand"),
                     tilTilstand = row.string("til_tilstand"),
-                    fordi = row.string("fordi"),
+                    fordi = row.string("fordi").takeUnless { bareUnike } ?: "",
                     førstegang = row.localDateTime("forste_gang"),
                     sistegang = row.localDateTime("siste_gang"),
                     antall = row.long("count")
