@@ -22,7 +22,7 @@ internal class FilesystemRepository(private val file: String) : Tilstandsendring
         throw NotImplementedError()
     }
 
-    override fun tilstandsendringer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>): List<TilstandsendringDto> {
+    override fun tilstandsendringer(bareUnike: Boolean, fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>): List<TilstandsendringDto> {
         return testdata
             .filter { fordi.isEmpty() || it.fordi.lowercase() in fordi.map(String::lowercase) }
             .filter { it.fordi.lowercase() !in ignorerFordi.map(String::lowercase) }

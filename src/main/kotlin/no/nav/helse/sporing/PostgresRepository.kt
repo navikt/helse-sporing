@@ -3,7 +3,6 @@ package no.nav.helse.sporing
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import kotliquery.using
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -38,17 +37,25 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
             GROUP BY tilstandsendring_id
         ) vt ON vt.tilstandsendring_id = t.id;
     """
-    override fun tilstandsendringer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>) = sessionOf(dataSource).use {
-        filtrer(fordi.map(String::lowercase), etter, ignorerTilstand.map(String::lowercase), ignorerFordi.map(String::lowercase), it.run(queryOf(selectTransitionStatemenet).map { row ->
-            TilstandsendringDto(
-                fraTilstand = row.string("fra_tilstand"),
-                tilTilstand = row.string("til_tilstand"),
-                fordi = row.string("fordi"),
-                førstegang = row.localDateTime("forste_gang"),
-                sistegang = row.localDateTime("siste_gang"),
-                antall = row.long("count")
-            )
-        }.asList))
+    @Language("PostgreSQL")
+    private val selectUnikeTransitionStatement = """
+        select count(1) as count, string_agg(fordi, ','), fra_tilstand, til_tilstand, min(forste_gang),max(siste_gang) from tilstandsendring group by fra_tilstand,til_tilstand;
+    """
+    override fun tilstandsendringer(bareUnike: Boolean, fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>): List<TilstandsendringDto> {
+        val tilstandsendringer = sessionOf(dataSource).use {
+            val spørring = if (bareUnike) selectUnikeTransitionStatement else  selectTransitionStatemenet
+            it.run(queryOf(spørring).map { row ->
+                TilstandsendringDto(
+                    fraTilstand = row.string("fra_tilstand"),
+                    tilTilstand = row.string("til_tilstand"),
+                    fordi = row.string("fordi"),
+                    førstegang = row.localDateTime("forste_gang"),
+                    sistegang = row.localDateTime("siste_gang"),
+                    antall = row.long("count")
+                )
+            }.asList)
+        }
+        return filtrer(fordi.map(String::lowercase), etter, ignorerTilstand.map(String::lowercase), ignorerFordi.map(String::lowercase), tilstandsendringer)
     }
 
     @Language("PostgreSQL")

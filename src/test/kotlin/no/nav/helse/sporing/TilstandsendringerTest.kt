@@ -70,7 +70,7 @@ internal class TilstandsendringerTest {
             tilstandsendringer.add(Triple(fraTilstand, tilTilstand, når))
         }
 
-        override fun tilstandsendringer(fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>): List<TilstandsendringDto> {
+        override fun tilstandsendringer(bareUnike: Boolean, fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>): List<TilstandsendringDto> {
             throw NotImplementedError()
         }
 

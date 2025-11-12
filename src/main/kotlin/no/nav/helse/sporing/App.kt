@@ -21,16 +21,17 @@ fun main() {
 internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClient): Application.() -> Unit {
     return {
         routing {
-            tilstandsmaskinRoute("/tilstandsmaskin.json") { fordi, etter, ignorerTilstand, ignorerFordi ->
+            tilstandsmaskinRoute("/tilstandsmaskin.json") { bareUnike, fordi, etter, ignorerTilstand, ignorerFordi ->
                 call.respond(
                     OK,
-                    TilstandsendringerResponse(repo.tilstandsendringer(fordi, etter, ignorerTilstand, ignorerFordi))
+                    TilstandsendringerResponse(repo.tilstandsendringer(bareUnike, fordi, etter, ignorerTilstand, ignorerFordi))
                 )
             }
-            tilstandsmaskinRoute("/tilstandsmaskin.dot") { fordi, etter, ignorerTilstand, ignorerFordi ->
+            tilstandsmaskinRoute("/tilstandsmaskin.dot") { bareUnike, fordi, etter, ignorerTilstand, ignorerFordi ->
                 call.respondText(ContentType.Text.Plain, OK) {
                     GraphvizFormatter.General.format(
                         repo.tilstandsendringer(
+                            bareUnike,
                             fordi,
                             etter,
                             ignorerTilstand,
@@ -47,7 +48,7 @@ internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClien
                     GraphvizFormatter.Specific.format(repo.tilstandsendringer(vedtaksperiodeId))
                 }
             }
-            tilstandsmaskinRoute("/") { fordi, etter, ignorerTilstand, ignorerFordi ->
+            tilstandsmaskinRoute("/") { bareUnike, fordi, etter, ignorerTilstand, ignorerFordi ->
                 call.respondText(ContentType.Text.Html, OK) {
                     getResourceAsText("/index.html")
                         .replace("{fordi}", fordi.joinToString(prefix = "?", separator = "&") { "fordi=$it" })
@@ -58,6 +59,7 @@ internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClien
                             "{ignorerFordi}",
                             ignorerFordi.joinToString(prefix = "&", separator = "&") { "ignorerFordi=$it" })
                         .replace("{etter}", "&etter=${etter?.toString() ?: ""}")
+                        .replace("{bareUnike}", "&bareUnike=${if (bareUnike) "true" else "false"}")
                 }
             }
             vedtaksperiodeRoute("/tilstandsmaskin/{vedtaksperiodeId}") { vedtaksperiodeId ->
@@ -102,10 +104,11 @@ private fun numericalOnlyOrNull(str: String): String? {
 
 private fun Routing.tilstandsmaskinRoute(
     uri: String,
-    body: suspend RoutingContext.(fordi: List<String>, etter: LocalDateTime?, ignorer: List<String>, ignorerFordi: List<String>) -> Unit
+    body: suspend RoutingContext.(bareUnike: Boolean, fordi: List<String>, etter: LocalDateTime?, ignorer: List<String>, ignorerFordi: List<String>) -> Unit
 ) {
     get(uri) {
         withContext(Dispatchers.IO) {
+            val bareUnike = call.queryParam("bareUnike").firstOrNull()?.toBoolean() ?: false
             val fordi = call.queryParam("fordi").mapNotNull(::alphaNumericalOnlyOrNull)
             val ignorerTilstand = call.queryParam("ignorerTilstand").mapNotNull(::alphaNumericalOnlyOrNull)
             val ignorerFordi = call.queryParam("ignorerFordi").mapNotNull(::alphaNumericalOnlyOrNull)
@@ -116,7 +119,7 @@ private fun Routing.tilstandsmaskinRoute(
                     return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime")
                 }
             }
-            body(this@get, fordi, etter, ignorerTilstand, ignorerFordi)
+            body(this@get, bareUnike, fordi, etter, ignorerTilstand, ignorerFordi)
         }
     }
 }
