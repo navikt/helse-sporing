@@ -1,0 +1,1 @@
+create index fk_vedtaksperiode_tilstandsendring_tilstandsendring_id on vedtaksperiode_tilstandsendring(tilstandsendring_id);
