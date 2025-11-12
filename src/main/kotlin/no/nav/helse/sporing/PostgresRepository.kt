@@ -39,7 +39,8 @@ internal class PostgresRepository(dataSourceProvider: () -> DataSource): Tilstan
     """
     @Language("PostgreSQL")
     private val selectUnikeTransitionStatement = """
-        select count(1) as count, string_agg(fordi, ',') as fordi, fra_tilstand, til_tilstand, min(forste_gang),max(siste_gang) from tilstandsendring group by fra_tilstand,til_tilstand;
+        select count(1) as count, string_agg(fordi, ',') as fordi, fra_tilstand, til_tilstand, min(forste_gang) as forste_gang,max(siste_gang) as siste_gang 
+        from tilstandsendring group by fra_tilstand,til_tilstand;
     """
     override fun tilstandsendringer(bareUnike: Boolean, fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>): List<TilstandsendringDto> {
         val tilstandsendringer = sessionOf(dataSource).use {
