@@ -91,8 +91,10 @@ internal class PersonendringerHtmlBuilder(person: PersonDTO, tilstandsendringer:
             private fun fintNavn(navn: String) = when (navn) {
                 "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepengerSykepengehistorikk" -> "Ytelser (med Sykepengehistorikk)"
                 "Arbeidsforholdv2InntekterforsammenligningsgrunnlagInntekterforsykepengegrunnlagMedlemskap" -> "Vilkårsgrunnlag"
+                "Arbeidsforholdv2InntekterforopptjeningsvurderingInntekterforsykepengegrunnlagMedlemskap" -> "Vilkårsgrunnlag"
                 "InntekterforsammenligningsgrunnlagMedlemskapOpptjening" -> "Vilkårsgrunnlag (deprecated)"
                 "Arbeidsforholdv2Inntekterforsykepengegrunnlag" -> "Utbetalingsgrunnlag (deprecated)"
+                "ArbeidsavklaringspengerDagpengerForeldrepengerInntekterforberegningInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" -> "Ytelser (uten Sykepengehistorikk)"
                 "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" -> "Ytelser (uten Sykepengehistorikk)"
                 else -> navn.split(' ', '_').joinToString(separator = " ") { it.replaceFirstChar { it.titlecase() } }
             }
