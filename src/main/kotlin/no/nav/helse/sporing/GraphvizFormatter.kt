@@ -177,8 +177,10 @@ internal class GraphvizFormatter private constructor(private val transitionForma
             "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepengerSykepengehistorikk" to "Ytelser (med sykepengehistorikk)",
             "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
             "ArbeidsavklaringspengerDagpengerForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
+            "ArbeidsavklaringspengerDagpengerForeldrepengerInntekterforberegningInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
             "InntekterforsammenligningsgrunnlagMedlemskapOpptjening" to "Vilkårsgrunnlag",
-            "Arbeidsforholdv2InntekterforsammenligningsgrunnlagInntekterforsykepengegrunnlagMedlemskap" to "Vilkårsgrunnlag"
+            "Arbeidsforholdv2InntekterforsammenligningsgrunnlagInntekterforsykepengegrunnlagMedlemskap" to "Vilkårsgrunnlag",
+            "Arbeidsforholdv2InntekterforopptjeningsvurderingInntekterforsykepengegrunnlagMedlemskap" to "Vilkårsgrunnlag"
         )
         override fun format(name: String): String {
             return events[name] ?: name
