@@ -33,8 +33,6 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
-  secureLogs:
-    enabled: true
   gcp:
     sqlInstances:
       - type: POSTGRES_17
