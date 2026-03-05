@@ -43,7 +43,7 @@ spec:
   azure:
     application:
       enabled: true
-      tenant: nav.no
+      tenant: {{ tenant }}
   kafka:
     pool: {{kafkaPool}}
   ingresses:
