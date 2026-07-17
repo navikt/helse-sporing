@@ -30,6 +30,9 @@ dependencies {
     implementation("com.github.seratch:kotliquery:1.9.1")
     implementation("org.flywaydb:flyway-database-postgresql:12.11.0")
 
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.22.1"))
+    implementation(platform("tools.jackson:jackson-bom:3.2.1"))
+
     testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
     testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:$tbdLibsVersion")
 
