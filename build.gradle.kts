@@ -1,13 +1,7 @@
-val flywayVersion = "11.5.0"
-val hikariCPVersion = "6.3.0"
-val kotliqueryVersion = "1.9.0"
-val junitJupiterVersion = "5.12.1"
-val rapidsAndRiversVersion = "2026011411051768385145.e8ebad1177b4"
-val tbdLibsVersion = "2026.01.22-09.16-1d3f6039"
-val postgresqlVersion = "42.7.7"
+val tbdLibsVersion = "20260702.1010"
 
 plugins {
-    kotlin("jvm") version "2.3.0"
+    kotlin("jvm") version "2.4.0"
 }
 
 // Sett opp repositories basert på om vi kjører i CI eller ikke
@@ -27,20 +21,21 @@ repositories {
     }
 }
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
+    implementation("com.github.navikt:rapids-and-rivers:2026071513121784113927")
     implementation("com.github.navikt.tbd-libs:naisful-app:$tbdLibsVersion")
     implementation("com.github.navikt.tbd-libs:azure-token-client-default:$tbdLibsVersion")
 
-    implementation("org.postgresql:postgresql:$postgresqlVersion")
-    implementation("com.zaxxer:HikariCP:$hikariCPVersion")
-    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
-    implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
+    implementation("org.postgresql:postgresql:42.7.13")
+    implementation("com.zaxxer:HikariCP:7.1.0")
+    implementation("com.github.seratch:kotliquery:1.9.1")
+    implementation("org.flywaydb:flyway-database-postgresql:12.11.0")
 
     testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
     testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:$tbdLibsVersion")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(platform("org.junit:junit-bom:6.1.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation(kotlin("test"))
 }
 
 kotlin {
