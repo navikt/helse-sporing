@@ -1,19 +1,16 @@
 package no.nav.helse.sporing
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.convertValue
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import com.github.navikt.tbd_libs.result_object.getOrThrow
-import io.ktor.http.*
-import no.nav.helse.sporing.person.PersonDTO
-import org.slf4j.LoggerFactory
+import io.ktor.http.HttpMethod
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URI
-import java.net.URL
+import no.nav.helse.sporing.person.PersonDTO
+import org.slf4j.LoggerFactory
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.convertValue
+import tools.jackson.module.kotlin.jacksonObjectMapper
 
 internal class SpleisClient(
     private val baseUrl: String,
@@ -23,8 +20,6 @@ internal class SpleisClient(
 
     private companion object {
         private val objectMapper = jacksonObjectMapper()
-            .registerModule(JavaTimeModule())
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         private val tjenestekallLog = LoggerFactory.getLogger("tjenestekall")
     }
 

@@ -1,17 +1,14 @@
 package no.nav.helse.sporing
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.navikt.tbd_libs.azure.AzureToken
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import com.github.navikt.tbd_libs.result_object.Result
-import io.ktor.server.cio.*
-import io.ktor.server.engine.*
+import io.ktor.server.cio.CIO
+import io.ktor.server.engine.embeddedServer
 import java.time.LocalDateTime
 import java.util.*
+import tools.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.module.kotlin.readValue
 
 fun main() {
     LocalApp().start()
@@ -38,9 +35,6 @@ internal class LocalApp(serverPort: Int = 4000): SporingApplication {
 
     internal class FilesystemRepository(private val file: String) : TilstandsendringRepository {
         private val objectMapper = jacksonObjectMapper()
-            .registerModule(JavaTimeModule())
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 
         private val testdata: List<TilstandsendringDto> by lazy {
             objectMapper.readValue<TilstandsendringerResponse>(getResourceAsText(file)).tilstandsendringer

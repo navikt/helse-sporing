@@ -8,17 +8,15 @@ import com.github.navikt.tbd_libs.naisful.naisApp
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.request.header
 import io.micrometer.core.instrument.Clock
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.prometheus.metrics.model.registry.PrometheusRegistry
+import java.time.Duration
+import javax.sql.DataSource
 import no.nav.helse.rapids_rivers.RapidApplication
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
-import java.time.Duration
-import javax.sql.DataSource
 
 internal interface SporingApplication {
     fun start()
