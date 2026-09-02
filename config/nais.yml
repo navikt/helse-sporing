@@ -40,6 +40,15 @@ spec:
         diskAutoresize: true
         databases:
           - name: sporing
+        flags:
+          - name: cloudsql.enable_pgaudit
+            value: "{{pgAudit}}"
+          - name: pgaudit.log
+            value: "write,ddl,role"
+          - name: pgaudit.log_parameter
+            value: "on"
+          - name: pgaudit.log_relation
+            value: "on"
   azure:
     application:
       enabled: true

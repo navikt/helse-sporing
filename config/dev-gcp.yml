@@ -4,3 +4,4 @@ ingress2: https://sporing.ansatt.dev.nav.no
 spleisScope: api://dev-gcp.tbd.spleis-api/.default
 sqlInstanceTier: db-f1-micro
 tenant: trygdeetaten.no
+pgAudit: off
