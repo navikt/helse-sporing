@@ -1,0 +1,28 @@
+spec:
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_17
+        tier: db-custom-1-3840
+        diskAutoresize: true
+        databases:
+          - name: sporing
+        flags:
+          - name: cloudsql.enable_pgaudit
+            value: "on"
+          - name: pgaudit.log
+            value: "write,ddl,role"
+          - name: pgaudit.log_parameter
+            value: "on"
+          - name: pgaudit.log_relation
+            value: "on"
+  azure:
+    application:
+      tenant: nav.no
+  kafka:
+    pool: nav-prod
+  ingresses:
+    - https://sporing.intern.nav.no
+    - https://sporing.ansatt.nav.no
+  env:
+    - name: SPLEIS_SCOPE
+      value: api://prod-gcp.tbd.spleis-api/.default

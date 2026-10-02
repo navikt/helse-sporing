@@ -9,7 +9,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "4m"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
 spec:
-  image: {{image}}
   strategy:
     type: Recreate
   liveness:
@@ -33,31 +32,9 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
-  gcp:
-    sqlInstances:
-      - type: POSTGRES_17
-        tier: {{sqlInstanceTier}}
-        diskAutoresize: true
-        databases:
-          - name: sporing
-        flags:
-          - name: cloudsql.enable_pgaudit
-            value: "{{pgAudit}}"
-          - name: pgaudit.log
-            value: "write,ddl,role"
-          - name: pgaudit.log_parameter
-            value: "on"
-          - name: pgaudit.log_relation
-            value: "on"
   azure:
     application:
       enabled: true
-      tenant: {{ tenant }}
-  kafka:
-    pool: {{kafkaPool}}
-  ingresses:
-    - {{ingress1}}
-    - {{ingress2}}
   accessPolicy:
     outbound:
       rules:
@@ -71,7 +48,5 @@ spec:
       value: tbd.rapid.v1
     - name: KAFKA_RESET_POLICY
       value: earliest
-    - name: SPLEIS_SCOPE
-      value: {{spleisScope}}
     - name: SPLEIS_API_URL
       value: http://spleis-api

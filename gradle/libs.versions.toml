@@ -1,0 +1,19 @@
+[versions]
+tbdLibs = "20260702.1010"
+sykepengerGradlePlugins = "20261001.1830"
+
+[libraries]
+flyway-postgresql = "org.flywaydb:flyway-database-postgresql:12.11.0"
+hikariCP = "com.zaxxer:HikariCP:7.1.0"
+kotliquery = "com.github.seratch:kotliquery:1.9.1"
+postgresql = "org.postgresql:postgresql:42.7.13"
+
+rapidsAndRivers = "com.github.navikt:rapids-and-rivers:2026071513121784113927"
+
+tbdLibs-azureTokenClientDefault = { module = "com.github.navikt.tbd-libs:azure-token-client-default", version.ref = "tbdLibs" }
+tbdLibs-naisfulApp = { module = "com.github.navikt.tbd-libs:naisful-app", version.ref = "tbdLibs" }
+tbdLibs-postgresTestdatabaser = { module = "com.github.navikt.tbd-libs:postgres-testdatabaser", version.ref = "tbdLibs" }
+tbdLibs-rapidsAndRiversTest = { module = "com.github.navikt.tbd-libs:rapids-and-rivers-test", version.ref = "tbdLibs" }
+
+[plugins]
+sykepenger-deployable = { id = "no.nav.sykepenger.deployable", version.ref = "sykepengerGradlePlugins" }
