@@ -1,8 +1,5 @@
 package no.nav.helse.sporing
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import com.github.navikt.tbd_libs.naisful.naisApp
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
@@ -17,6 +14,8 @@ import javax.sql.DataSource
 import no.nav.helse.rapids_rivers.RapidApplication
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 
 internal interface SporingApplication {
     fun start()
@@ -56,7 +55,7 @@ internal class ProductionApp(private val env: Map<String, String>): SporingAppli
             withKtor { preStopHook, rapid ->
                 naisApp(
                     meterRegistry = meterRegistry,
-                    objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS),
+                    objectMapper = jacksonMapperBuilder().disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build(),
                     applicationLogger = log,
                     callLogger = LoggerFactory.getLogger("no.nav.helse.sporing.CallLogging"),
                     naisEndpoints = com.github.navikt.tbd_libs.naisful.NaisEndpoints.Default,
