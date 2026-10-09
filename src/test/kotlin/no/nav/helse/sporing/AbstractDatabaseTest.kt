@@ -6,7 +6,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 
 internal abstract class AbstractDatabaseTest {
-
     private lateinit var testDataSource: TestDataSource
     protected val dataSource get() = testDataSource.ds
     protected lateinit var repository: PostgresRepository

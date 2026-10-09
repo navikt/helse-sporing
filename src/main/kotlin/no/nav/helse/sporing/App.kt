@@ -18,13 +18,16 @@ fun main() {
     ProductionApp(env).start()
 }
 
-internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClient): Application.() -> Unit {
+internal fun ktorApi(
+    repo: TilstandsendringRepository,
+    spleisClient: SpleisClient,
+): Application.() -> Unit {
     return {
         routing {
             tilstandsmaskinRoute("/tilstandsmaskin.json") { bareUnike, fordi, etter, ignorerTilstand, ignorerFordi ->
                 call.respond(
                     OK,
-                    TilstandsendringerResponse(repo.tilstandsendringer(bareUnike, fordi, etter, ignorerTilstand, ignorerFordi))
+                    TilstandsendringerResponse(repo.tilstandsendringer(bareUnike, fordi, etter, ignorerTilstand, ignorerFordi)),
                 )
             }
             tilstandsmaskinRoute("/tilstandsmaskin.dot") { bareUnike, fordi, etter, ignorerTilstand, ignorerFordi ->
@@ -35,8 +38,8 @@ internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClien
                             fordi,
                             etter,
                             ignorerTilstand,
-                            ignorerFordi
-                        )
+                            ignorerFordi,
+                        ),
                     )
                 }
             }
@@ -54,11 +57,11 @@ internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClien
                         .replace("{fordi}", fordi.joinToString(prefix = "?", separator = "&") { "fordi=$it" })
                         .replace(
                             "{ignorerTilstand}",
-                            ignorerTilstand.joinToString(prefix = "&", separator = "&") { "ignorerTilstand=$it" })
-                        .replace(
+                            ignorerTilstand.joinToString(prefix = "&", separator = "&") { "ignorerTilstand=$it" },
+                        ).replace(
                             "{ignorerFordi}",
-                            ignorerFordi.joinToString(prefix = "&", separator = "&") { "ignorerFordi=$it" })
-                        .replace("{etter}", "&etter=${etter?.toString() ?: ""}")
+                            ignorerFordi.joinToString(prefix = "&", separator = "&") { "ignorerFordi=$it" },
+                        ).replace("{etter}", "&etter=${etter?.toString() ?: ""}")
                         .replace("{bareUnike}", "&bareUnike=${if (bareUnike) "true" else "false"}")
                 }
             }
@@ -70,10 +73,11 @@ internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClien
             }
             get("/person/{pid}") {
                 withContext(Dispatchers.IO) {
-                    val pid = call.parameters["pid"]?.let(::numericalOnlyOrNull) ?: return@withContext call.respond(
-                        BadRequest,
-                        "Please set pid in url (numbers only)"
-                    )
+                    val pid =
+                        call.parameters["pid"]?.let(::numericalOnlyOrNull) ?: return@withContext call.respond(
+                            BadRequest,
+                            "Please set pid in url (numbers only)",
+                        )
                     val vedtaksperioder = spleisClient.hentVedtaksperioder(pid)
                     val endringer =
                         repo.personendringer(vedtaksperioder.arbeidsgivere.flatMap { it.vedtaksperioder.map { it.id } })
@@ -82,7 +86,7 @@ internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClien
                         getResourceAsText("/personendringer.html")
                             .replace(
                                 "{{GENERATED_HTML}}",
-                                PersonendringerHtmlBuilder(vedtaksperioder, endringer).render()
+                                PersonendringerHtmlBuilder(vedtaksperioder, endringer).render(),
                             )
                     }
                 }
@@ -93,18 +97,16 @@ internal fun ktorApi(repo: TilstandsendringRepository, spleisClient: SpleisClien
 }
 
 private val re = Regex("[^A-Za-z0-9æøåÆØÅ_-]")
-private fun alphaNumericalOnlyOrNull(str: String): String? {
-    return re.replace(str, "").takeIf(String::isNotEmpty)
-}
+
+private fun alphaNumericalOnlyOrNull(str: String): String? = re.replace(str, "").takeIf(String::isNotEmpty)
 
 private val reNumerical = Regex("[^0-9]")
-private fun numericalOnlyOrNull(str: String): String? {
-    return reNumerical.replace(str, "").takeIf(String::isNotEmpty)
-}
+
+private fun numericalOnlyOrNull(str: String): String? = reNumerical.replace(str, "").takeIf(String::isNotEmpty)
 
 private fun Routing.tilstandsmaskinRoute(
     uri: String,
-    body: suspend RoutingContext.(bareUnike: Boolean, fordi: List<String>, etter: LocalDateTime?, ignorer: List<String>, ignorerFordi: List<String>) -> Unit
+    body: suspend RoutingContext.(bareUnike: Boolean, fordi: List<String>, etter: LocalDateTime?, ignorer: List<String>, ignorerFordi: List<String>) -> Unit,
 ) {
     get(uri) {
         withContext(Dispatchers.IO) {
@@ -112,24 +114,24 @@ private fun Routing.tilstandsmaskinRoute(
             val fordi = call.queryParam("fordi").mapNotNull(::alphaNumericalOnlyOrNull)
             val ignorerTilstand = call.queryParam("ignorerTilstand").mapNotNull(::alphaNumericalOnlyOrNull)
             val ignorerFordi = call.queryParam("ignorerFordi").mapNotNull(::alphaNumericalOnlyOrNull)
-            val etter = call.queryParam("etter").firstOrNull()?.let {
-                try {
-                    LocalDateTime.parse(it)
-                } catch (err: DateTimeParseException) {
-                    return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime")
+            val etter =
+                call.queryParam("etter").firstOrNull()?.let {
+                    try {
+                        LocalDateTime.parse(it)
+                    } catch (err: DateTimeParseException) {
+                        return@withContext call.respond(BadRequest, "Please use a valid LocalDateTime")
+                    }
                 }
-            }
             body(this@get, bareUnike, fordi, etter, ignorerTilstand, ignorerFordi)
         }
     }
 }
 
-private fun ApplicationCall.queryParam(name: String): List<String> =
-    request.queryParameters.getAll(name)?.filter(String::isNotBlank) ?: emptyList()
+private fun ApplicationCall.queryParam(name: String): List<String> = request.queryParameters.getAll(name)?.filter(String::isNotBlank) ?: emptyList()
 
 private fun Routing.vedtaksperiodeRoute(
     uri: String,
-    body: suspend RoutingContext.(vedtaksperiodeId: UUID) -> Unit
+    body: suspend RoutingContext.(vedtaksperiodeId: UUID) -> Unit,
 ) {
     get(uri) {
         withContext(Dispatchers.IO) {
@@ -145,9 +147,12 @@ private fun Routing.vedtaksperiodeRoute(
     }
 }
 
-private fun getResourceAsText(path: String): String {
-    return object {}.javaClass.getResource(path).readText()
-}
+private fun getResourceAsText(path: String): String = object {}.javaClass.getResource(path).readText()
 
-internal class TilstandsendringerResponse(val tilstandsendringer: List<TilstandsendringDto>)
-internal class PersonendringerResponse(val tilstandsendringer: List<PersonendringDto>)
+internal class TilstandsendringerResponse(
+    val tilstandsendringer: List<TilstandsendringDto>,
+)
+
+internal class PersonendringerResponse(
+    val tilstandsendringer: List<PersonendringDto>,
+)

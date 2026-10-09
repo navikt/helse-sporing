@@ -10,8 +10,9 @@ import java.util.*
 
 internal class TilstandsendringerTest {
     private val repo = TestRepo()
-    private val testRapid = TestRapid()
-        .apply { Tilstandsendringer(this, repo) }
+    private val testRapid =
+        TestRapid()
+            .apply { Tilstandsendringer(this, repo) }
 
     @BeforeEach
     fun setup() {
@@ -35,7 +36,7 @@ internal class TilstandsendringerTest {
         vedtaksperiodeId: UUID,
         fraTilstand: String,
         tilTilstand: String,
-        tidspunkt: LocalDateTime = LocalDateTime.now()
+        tidspunkt: LocalDateTime = LocalDateTime.now(),
     ): String {
         @Language("JSON")
         val template = """
@@ -60,26 +61,35 @@ internal class TilstandsendringerTest {
         private val tilstandsendringer = mutableListOf<Triple<String, String, LocalDateTime>>()
 
         internal fun antallTilstandsendringer() = tilstandsendringer.size
+
         internal fun tilstandsendring(indeks: Int) = tilstandsendringer[indeks]
 
         internal fun reset() {
             tilstandsendringer.clear()
         }
 
-        override fun lagre(meldingId: UUID, vedtaksperiodeId: UUID, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime, årsak: Årsak) {
+        override fun lagre(
+            meldingId: UUID,
+            vedtaksperiodeId: UUID,
+            fraTilstand: String,
+            tilTilstand: String,
+            fordi: String,
+            når: LocalDateTime,
+            årsak: Årsak,
+        ) {
             tilstandsendringer.add(Triple(fraTilstand, tilTilstand, når))
         }
 
-        override fun tilstandsendringer(bareUnike: Boolean, fordi: List<String>, etter: LocalDateTime?, ignorerTilstand: List<String>, ignorerFordi: List<String>): List<TilstandsendringDto> {
-            throw NotImplementedError()
-        }
+        override fun tilstandsendringer(
+            bareUnike: Boolean,
+            fordi: List<String>,
+            etter: LocalDateTime?,
+            ignorerTilstand: List<String>,
+            ignorerFordi: List<String>,
+        ): List<TilstandsendringDto> = throw NotImplementedError()
 
-        override fun tilstandsendringer(vedtaksperiodeId: UUID): List<TilstandsendringDto> {
-            throw NotImplementedError()
-        }
+        override fun tilstandsendringer(vedtaksperiodeId: UUID): List<TilstandsendringDto> = throw NotImplementedError()
 
-        override fun personendringer(vedtaksperioder: List<UUID>): List<PersonendringDto> {
-            throw NotImplementedError()
-        }
+        override fun personendringer(vedtaksperioder: List<UUID>): List<PersonendringDto> = throw NotImplementedError()
     }
 }

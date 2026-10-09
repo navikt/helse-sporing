@@ -3,68 +3,104 @@ package no.nav.helse.sporing
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-internal class GraphvizFormatter private constructor(private val transitionFormatter: TransitionFormatter) {
-
+internal class GraphvizFormatter private constructor(
+    private val transitionFormatter: TransitionFormatter,
+) {
     internal companion object {
         private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm:ss")
-        internal val Specific = GraphvizFormatter { sb: StringBuilder, index: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime ->
-            sb
-                .append("\t")
-                .append(fraTilstand)
-                .append(" -> ")
-                .append(tilTilstand)
-                .append(" [")
-                .append("label=\"")
-                .append("#${index + 1} ")
-                .append(eventFormatter.format(fordi))
-                .append("\n(")
-                .append(når.format(dateFormatter))
-                .append(")")
-                .append("\"")
-                .appendLine("];")
-        }
+        internal val Specific =
+            GraphvizFormatter { sb: StringBuilder, index: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime ->
+                sb
+                    .append("\t")
+                    .append(fraTilstand)
+                    .append(" -> ")
+                    .append(tilTilstand)
+                    .append(" [")
+                    .append("label=\"")
+                    .append("#${index + 1} ")
+                    .append(eventFormatter.format(fordi))
+                    .append("\n(")
+                    .append(når.format(dateFormatter))
+                    .append(")")
+                    .append("\"")
+                    .appendLine("];")
+            }
 
-        internal val General = GraphvizFormatter { sb: StringBuilder, _: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, _: LocalDateTime ->
-            sb
-                .append("\t")
-                .append(fraTilstand)
-                .append(" -> ")
-                .append(tilTilstand)
-                .append(" [")
-                .append("label=\"")
-                .append(eventFormatter.format(fordi))
-                .append("\"")
-                .appendLine("];")
-        }
+        internal val General =
+            GraphvizFormatter { sb: StringBuilder, _: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, _: LocalDateTime ->
+                sb
+                    .append("\t")
+                    .append(fraTilstand)
+                    .append(" -> ")
+                    .append(tilTilstand)
+                    .append(" [")
+                    .append("label=\"")
+                    .append(eventFormatter.format(fordi))
+                    .append("\"")
+                    .appendLine("];")
+            }
     }
+
     private val eventFormatter = EventFormatter()
     private val edgeFormatter = EdgeFormatter()
 
-    private val clusters = listOf(
-        // blue states
-        Cluster("blue", setOf(
-            "MOTTATT_SYKMELDING_UFERDIG_FORLENGELSE", "MOTTATT_SYKMELDING_FERDIG_FORLENGELSE", "AVVENTER_INNTEKTSMELDING_UFERDIG_FORLENGELSE",
-            "AVVENTER_SØKNAD_UFERDIG_FORLENGELSE", "AVVENTER_UFERDIG_FORLENGELSE", "AVVENTER_SØKNAD_FERDIG_FORLENGELSE",
-            "AVVENTER_INNTEKTSMELDING_FERDIG_FORLENGELSE"
-        )),
-        // green states
-        Cluster("green", setOf(
-            "MOTTATT_SYKMELDING_FERDIG_GAP", "MOTTATT_SYKMELDING_UFERDIG_GAP", "AVVENTER_SØKNAD_FERDIG_GAP",
-            "AVVENTER_SØKNAD_UFERDIG_GAP", "AVVENTER_INNTEKTSMELDING_UFERDIG_GAP", "AVVENTER_GAP", "AVVENTER_INNTEKTSMELDING_FERDIG_GAP",
-            "AVVENTER_UFERDIG_GAP", "AVVENTER_VILKÅRSPRØVING_GAP",
-            "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP",
-            "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
-            "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP"
-        )),
-        Cluster("orange", setOf(
-            "AVVENTER_VILKÅRSPRØVING", "AVVENTER_UFERDIG", "AVVENTER_HISTORIKK", "AVVENTER_SIMULERING", "AVVENTER_GODKJENNING", "AVVENTER_ARBEIDSGIVERE", "TIL_UTBETALING"
-        )),
-        Cluster("yellow", setOf(
-            "AVSLUTTET", "TIL_INFOTRYGD", "AVSLUTTET_UTEN_UTBETALING", "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING",
-            "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE",
-            "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP"
-        ))
-    )
+    private val clusters =
+        listOf(
+            // blue states
+            Cluster(
+                "blue",
+                setOf(
+                    "MOTTATT_SYKMELDING_UFERDIG_FORLENGELSE",
+                    "MOTTATT_SYKMELDING_FERDIG_FORLENGELSE",
+                    "AVVENTER_INNTEKTSMELDING_UFERDIG_FORLENGELSE",
+                    "AVVENTER_SØKNAD_UFERDIG_FORLENGELSE",
+                    "AVVENTER_UFERDIG_FORLENGELSE",
+                    "AVVENTER_SØKNAD_FERDIG_FORLENGELSE",
+                    "AVVENTER_INNTEKTSMELDING_FERDIG_FORLENGELSE",
+                ),
+            ),
+            // green states
+            Cluster(
+                "green",
+                setOf(
+                    "MOTTATT_SYKMELDING_FERDIG_GAP",
+                    "MOTTATT_SYKMELDING_UFERDIG_GAP",
+                    "AVVENTER_SØKNAD_FERDIG_GAP",
+                    "AVVENTER_SØKNAD_UFERDIG_GAP",
+                    "AVVENTER_INNTEKTSMELDING_UFERDIG_GAP",
+                    "AVVENTER_GAP",
+                    "AVVENTER_INNTEKTSMELDING_FERDIG_GAP",
+                    "AVVENTER_UFERDIG_GAP",
+                    "AVVENTER_VILKÅRSPRØVING_GAP",
+                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP",
+                    "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
+                    "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP",
+                ),
+            ),
+            Cluster(
+                "orange",
+                setOf(
+                    "AVVENTER_VILKÅRSPRØVING",
+                    "AVVENTER_UFERDIG",
+                    "AVVENTER_HISTORIKK",
+                    "AVVENTER_SIMULERING",
+                    "AVVENTER_GODKJENNING",
+                    "AVVENTER_ARBEIDSGIVERE",
+                    "TIL_UTBETALING",
+                ),
+            ),
+            Cluster(
+                "yellow",
+                setOf(
+                    "AVSLUTTET",
+                    "TIL_INFOTRYGD",
+                    "AVSLUTTET_UTEN_UTBETALING",
+                    "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING",
+                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE",
+                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP",
+                ),
+            ),
+        )
 
     internal fun format(tilstandsendringer: List<TilstandsendringDto>): String {
         val sb = StringBuilder()
@@ -90,27 +126,42 @@ internal class GraphvizFormatter private constructor(private val transitionForma
         return sb.toString()
     }
 
-    private class Edge(private val name: String) {
-        fun format(sb: StringBuilder, formatter: Formatter) {
+    private class Edge(
+        private val name: String,
+    ) {
+        fun format(
+            sb: StringBuilder,
+            formatter: Formatter,
+        ) {
             sb
                 .append("\t\t")
                 .appendLine(formatter.format(name))
         }
 
         fun within(states: Set<String>) = name in states
+
         override fun hashCode() = name.hashCode()
+
         override fun equals(other: Any?) = other is Edge && other.name == this.name
     }
 
-    private class Cluster(private val color: String, private val states: Set<String>) {
+    private class Cluster(
+        private val color: String,
+        private val states: Set<String>,
+    ) {
         private val edges = mutableSetOf<Edge>()
 
         fun clear() {
             edges.clear()
         }
 
-        fun format(sb: StringBuilder, index: Int, formatter: Formatter) {
-            sb.append("\t")
+        fun format(
+            sb: StringBuilder,
+            index: Int,
+            formatter: Formatter,
+        ) {
+            sb
+                .append("\t")
                 .append("subgraph cluster_")
                 .append(index + 1)
                 .appendLine(" {")
@@ -127,64 +178,66 @@ internal class GraphvizFormatter private constructor(private val transitionForma
             edges.add(edge)
             return true
         }
+
         operator fun contains(edge: Edge) = edge.within(states)
     }
 
     private class EdgeFormatter : Formatter {
+        private val String.humanReadable get() =
+            this
+                .split("_")
+                .map(String::lowercase)
+                .joinToString(separator = " ", transform = { it.replaceFirstChar(Char::uppercase) })
 
-        private val String.humanReadable get() = this
-            .split("_")
-            .map(String::lowercase)
-            .joinToString(separator = " ", transform = { it.replaceFirstChar(Char::uppercase) })
+        private val defaultEdgeFormatter =
+            Formatter { edge: String ->
+                StringBuilder()
+                    .append(edge)
+                    .append(" [label=\"")
+                    .append(edge.humanReadable)
+                    .append("\"")
+                    .append("];")
+                    .toString()
+            }
 
-        private val defaultEdgeFormatter = Formatter { edge: String ->
-            StringBuilder()
-                .append(edge)
-                .append(" [label=\"")
-                .append(edge.humanReadable)
-                .append("\"")
-                .append("];")
-                .toString()
-        }
+        private val endFormatter =
+            Formatter { edge: String ->
+                StringBuilder()
+                    .append(edge)
+                    .append(" [")
+                    .append("shape=Mdiamond,")
+                    .append("label=\"")
+                    .append(edge.humanReadable)
+                    .append("\"")
+                    .append("];")
+                    .toString()
+            }
 
-        private val endFormatter = Formatter { edge: String ->
-            StringBuilder()
-                .append(edge)
-                .append(" [")
-                .append("shape=Mdiamond,")
-                .append("label=\"")
-                .append(edge.humanReadable)
-                .append("\"")
-                .append("];")
-                .toString()
-        }
+        private val edgeFormatters =
+            mapOf(
+                "TIL_INFOTRYGD" to endFormatter,
+                "START" to endFormatter,
+                "AVSLUTTET" to endFormatter,
+                "AVSLUTTET_UTEN_UTBETALING" to endFormatter,
+                "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING" to endFormatter,
+            )
 
-        private val edgeFormatters = mapOf(
-            "TIL_INFOTRYGD" to endFormatter,
-            "START" to endFormatter,
-            "AVSLUTTET" to endFormatter,
-            "AVSLUTTET_UTEN_UTBETALING" to endFormatter,
-            "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING" to endFormatter
-        )
-
-        override fun format(name: String): String {
-            return (edgeFormatters[name] ?: defaultEdgeFormatter).format(name)
-        }
+        override fun format(name: String): String = (edgeFormatters[name] ?: defaultEdgeFormatter).format(name)
     }
 
     private class EventFormatter : Formatter {
-        private val events = mapOf(
-            "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepengerSykepengehistorikk" to "Ytelser (med sykepengehistorikk)",
-            "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
-            "ArbeidsavklaringspengerDagpengerForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
-            "ArbeidsavklaringspengerDagpengerForeldrepengerInntekterforberegningInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
-            "InntekterforsammenligningsgrunnlagMedlemskapOpptjening" to "Vilkårsgrunnlag",
-            "Arbeidsforholdv2InntekterforsammenligningsgrunnlagInntekterforsykepengegrunnlagMedlemskap" to "Vilkårsgrunnlag",
-            "Arbeidsforholdv2InntekterforopptjeningsvurderingInntekterforsykepengegrunnlagMedlemskap" to "Vilkårsgrunnlag"
-        )
-        override fun format(name: String): String {
-            return events[name] ?: name
-        }
+        private val events =
+            mapOf(
+                "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepengerSykepengehistorikk" to "Ytelser (med sykepengehistorikk)",
+                "ArbeidsavklaringspengerDagpengerDødsinfoForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
+                "ArbeidsavklaringspengerDagpengerForeldrepengerInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
+                "ArbeidsavklaringspengerDagpengerForeldrepengerInntekterforberegningInstitusjonsoppholdOmsorgspengerOpplæringspengerPleiepenger" to "Ytelser",
+                "InntekterforsammenligningsgrunnlagMedlemskapOpptjening" to "Vilkårsgrunnlag",
+                "Arbeidsforholdv2InntekterforsammenligningsgrunnlagInntekterforsykepengegrunnlagMedlemskap" to "Vilkårsgrunnlag",
+                "Arbeidsforholdv2InntekterforopptjeningsvurderingInntekterforsykepengegrunnlagMedlemskap" to "Vilkårsgrunnlag",
+            )
+
+        override fun format(name: String): String = events[name] ?: name
     }
 
     internal fun interface Formatter {
@@ -192,6 +245,14 @@ internal class GraphvizFormatter private constructor(private val transitionForma
     }
 
     internal fun interface TransitionFormatter {
-        fun format(sb: StringBuilder, index: Int, eventFormatter: Formatter, fraTilstand: String, tilTilstand: String, fordi: String, når: LocalDateTime)
+        fun format(
+            sb: StringBuilder,
+            index: Int,
+            eventFormatter: Formatter,
+            fraTilstand: String,
+            tilTilstand: String,
+            fordi: String,
+            når: LocalDateTime,
+        )
     }
 }

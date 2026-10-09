@@ -9,7 +9,7 @@ internal class TilstandsendringDto(
     val fordi: String,
     val førstegang: LocalDateTime,
     val sistegang: LocalDateTime,
-    val antall: Long
+    val antall: Long,
 )
 
 internal class PersonendringDto(
@@ -19,5 +19,5 @@ internal class PersonendringDto(
     val vedtaksperiodeId: UUID,
     val når: LocalDateTime,
     val fraTilstand: String,
-    val tilTilstand: String
+    val tilTilstand: String,
 )
