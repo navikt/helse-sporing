@@ -39,7 +39,5 @@ internal class FilesystemRepository(
 
     override fun tilstandsendringer(vedtaksperiodeId: UUID): List<TilstandsendringDto> = testdata
 
-    override fun personendringer(vedtaksperioder: List<UUID>): List<PersonendringDto> = throw NotImplementedError()
-
     private fun getResourceAsText(path: String): String = object {}.javaClass.getResource(path).readText()
 }

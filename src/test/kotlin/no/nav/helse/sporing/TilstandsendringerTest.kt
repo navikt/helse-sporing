@@ -89,7 +89,5 @@ internal class TilstandsendringerTest {
         ): List<TilstandsendringDto> = throw NotImplementedError()
 
         override fun tilstandsendringer(vedtaksperiodeId: UUID): List<TilstandsendringDto> = throw NotImplementedError()
-
-        override fun personendringer(vedtaksperioder: List<UUID>): List<PersonendringDto> = throw NotImplementedError()
     }
 }

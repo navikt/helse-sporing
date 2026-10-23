@@ -23,8 +23,6 @@ internal interface TilstandsendringRepository {
     ): List<TilstandsendringDto>
 
     fun tilstandsendringer(vedtaksperiodeId: UUID): List<TilstandsendringDto>
-
-    fun personendringer(vedtaksperioder: List<UUID>): List<PersonendringDto>
 }
 
 internal class Årsak(

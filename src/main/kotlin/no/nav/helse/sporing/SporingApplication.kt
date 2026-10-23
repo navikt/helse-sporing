@@ -3,7 +3,6 @@ package no.nav.helse.sporing
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import com.github.navikt.tbd_libs.naisful.naisApp
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.zaxxer.hikari.HikariConfig
@@ -49,10 +48,6 @@ internal class ProductionApp(
     private val dataSourceInitializer = DataSourceInitializer(hikariConfig)
     private val repo = PostgresRepository(dataSourceInitializer::dataSource)
 
-    private val azureClient = createAzureTokenClientFromEnvironment(env)
-
-    private val apiUrl = env["SPLEIS_API_URL"] ?: "http://spleis-api.tbd.svc.cluster.local"
-    private val spleisClient = SpleisClient(apiUrl, azureClient, env.getValue("SPLEIS_SCOPE"))
     private val meterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT, PrometheusRegistry.defaultRegistry, Clock.SYSTEM)
     private val rapidsConnection =
         RapidApplication
@@ -70,7 +65,7 @@ internal class ProductionApp(
                             aliveCheck = rapid::isReady,
                             readyCheck = rapid::isReady,
                             preStopHook = preStopHook::handlePreStopRequest,
-                            applicationModule = ktorApi(repo, spleisClient),
+                            applicationModule = ktorApi(repo),
                         )
                     }
                 },

@@ -32,15 +32,11 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
-  azure:
-    application:
-      enabled: true
   accessPolicy:
     outbound:
       rules:
         - application: logging
           namespace: nais-system
-        - application: spleis-api
   env:
     - name: KAFKA_CONSUMER_GROUP_ID
       value: tbd-sporing-v1
@@ -48,5 +44,3 @@ spec:
       value: tbd.rapid.v1
     - name: KAFKA_RESET_POLICY
       value: earliest
-    - name: SPLEIS_API_URL
-      value: http://spleis-api
