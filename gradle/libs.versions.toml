@@ -1,12 +1,12 @@
 [versions]
-tbdLibs = "20261029.1800"
-sykepengerGradlePlugins = "20261001.1830"
+tbdLibs = "20261029.1843"
+sykepengerGradlePlugins = "20261029.1825"
 
 [libraries]
-flyway-postgresql = "org.flywaydb:flyway-database-postgresql:13.8.0"
+flyway-postgresql = "org.flywaydb:flyway-database-postgresql:13.11.1"
 hikariCP = "com.zaxxer:HikariCP:7.1.0"
 kotliquery = "com.github.seratch:kotliquery:1.9.1"
-postgresql = "org.postgresql:postgresql:42.7.13"
+postgresql = "org.postgresql:postgresql:42.7.14"
 
 rapidsAndRivers = "com.github.navikt:rapids-and-rivers:2026091610031789545782"
 
