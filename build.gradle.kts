@@ -9,7 +9,6 @@ sykepengerDeployable {
 dependencies {
     implementation(libs.rapidsAndRivers)
     implementation(libs.tbdLibs.naisfulApp)
-    implementation(libs.jackson.datatype.jsr310)
 
     implementation(libs.postgresql)
     implementation(libs.hikariCP)

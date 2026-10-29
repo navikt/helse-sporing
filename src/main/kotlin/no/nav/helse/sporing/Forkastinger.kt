@@ -31,10 +31,10 @@ internal class Forkastinger(
                 log.error("Forstod ikke vedtaksperiode_forkastet (Se sikker logg for detaljer)")
                 sikkerLog.error("Forstod ikke vedtaksperiode_forkastet:\n${problems.toExtendedReport()}")
             }.onSuccess { message, _, _, _ ->
-                val gjeldendeTilstand = message["tilstand"].asText()
+                val gjeldendeTilstand = message["tilstand"].asString()
                 val eventName = eventName(message)
-                val vedtaksperiodeId = UUID.fromString(message["vedtaksperiodeId"].asText())
-                val årsak = Årsak(UUID.fromString(message["@forårsaket_av.id"].asText()), eventName, message["@forårsaket_av.opprettet"].asLocalDateTime())
+                val vedtaksperiodeId = UUID.fromString(message["vedtaksperiodeId"].asString())
+                val årsak = Årsak(UUID.fromString(message["@forårsaket_av.id"].asString()), eventName, message["@forårsaket_av.opprettet"].asLocalDateTime())
                 log.info(
                     "lagrer forkasting {} {} {}",
                     keyValue("tilstand", gjeldendeTilstand),
@@ -42,7 +42,7 @@ internal class Forkastinger(
                     keyValue("vedtaksperiodeId", vedtaksperiodeId),
                 )
                 repository.lagre(
-                    meldingId = UUID.fromString(message["@id"].asText()),
+                    meldingId = UUID.fromString(message["@id"].asString()),
                     vedtaksperiodeId = vedtaksperiodeId,
                     fraTilstand = gjeldendeTilstand,
                     fordi = eventName,

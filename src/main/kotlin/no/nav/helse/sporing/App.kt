@@ -20,8 +20,8 @@ fun main() {
 
 internal fun ktorApi(
     repo: TilstandsendringRepository,
-): Application.() -> Unit {
-    return {
+): Application.() -> Unit =
+    {
         routing {
             tilstandsmaskinRoute("/tilstandsmaskin.json") { bareUnike, fordi, etter, ignorerTilstand, ignorerFordi ->
                 call.respond(
@@ -73,7 +73,6 @@ internal fun ktorApi(
             staticResources("public", "public")
         }
     }
-}
 
 private val re = Regex("[^A-Za-z0-9æøåÆØÅ_-]")
 

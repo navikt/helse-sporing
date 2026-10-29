@@ -5,11 +5,11 @@ import tools.jackson.databind.JsonNode
 
 internal object Event {
     internal fun eventName(message: JsonMessage): String {
-        val eventName = message["@forårsaket_av.event_name"].asText()
+        val eventName = message["@forårsaket_av.event_name"].asString()
         if (eventName != "behov") return eventName
         return message["@forårsaket_av.behov"]
             .toList()
-            .map(JsonNode::asText)
+            .map(JsonNode::asString)
             .sorted()
             .map(String::lowercase)
             .joinToString(separator = "", transform = { it.replaceFirstChar(Char::uppercase) })

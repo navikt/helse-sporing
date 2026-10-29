@@ -1,8 +1,5 @@
 package no.nav.helse.sporing
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.naisful.naisApp
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.zaxxer.hikari.HikariConfig
@@ -14,6 +11,7 @@ import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.nav.helse.rapids_rivers.RapidApplication
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.Duration
 import javax.sql.DataSource
 
@@ -58,7 +56,7 @@ internal class ProductionApp(
                     withKtor { preStopHook, rapid ->
                         naisApp(
                             meterRegistry = meterRegistry,
-                            objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS),
+                            objectMapper = jacksonObjectMapper(),
                             applicationLogger = log,
                             callLogger = LoggerFactory.getLogger("no.nav.helse.sporing.CallLogging"),
                             naisEndpoints = com.github.navikt.tbd_libs.naisful.NaisEndpoints.Default,

@@ -25,7 +25,7 @@ internal class Tilstandsendringer(
                 it.requireValue("@event_name", "vedtaksperiode_endret")
                 it.requireKey("forrigeTilstand", "gjeldendeTilstand")
                 it.require("forrigeTilstand") { forrigeTilstand ->
-                    require(forrigeTilstand.textValue() != it["gjeldendeTilstand"].textValue())
+                    require(forrigeTilstand.stringValue(null) != it["gjeldendeTilstand"].stringValue(null))
                 }
             }.validate {
                 it.requireKey("@id", "@forårsaket_av.id", "@forårsaket_av.event_name", "vedtaksperiodeId")
@@ -36,11 +36,11 @@ internal class Tilstandsendringer(
                 log.error("Forstod ikke vedtaksperiode_endret (Se sikker logg for detaljer)")
                 sikkerLog.error("Forstod ikke vedtaksperiode_endret:\n${problems.toExtendedReport()}")
             }.onSuccess { message, _, _, _ ->
-                val fraTilstand = message["forrigeTilstand"].asText()
-                val tilTilstand = message["gjeldendeTilstand"].asText()
+                val fraTilstand = message["forrigeTilstand"].asString()
+                val tilTilstand = message["gjeldendeTilstand"].asString()
                 val eventName = eventName(message)
-                val vedtaksperiodeId = UUID.fromString(message["vedtaksperiodeId"].asText())
-                val årsak = Årsak(UUID.fromString(message["@forårsaket_av.id"].asText()), eventName, message["@forårsaket_av.opprettet"].asLocalDateTime())
+                val vedtaksperiodeId = UUID.fromString(message["vedtaksperiodeId"].asString())
+                val årsak = Årsak(UUID.fromString(message["@forårsaket_av.id"].asString()), eventName, message["@forårsaket_av.opprettet"].asLocalDateTime())
                 withMDC(
                     mapOf(
                         "fraTilstand" to fraTilstand,
@@ -57,7 +57,7 @@ internal class Tilstandsendringer(
                         keyValue("vedtaksperiodeId", vedtaksperiodeId),
                     )
                     repository.lagre(
-                        meldingId = UUID.fromString(message["@id"].asText()),
+                        meldingId = UUID.fromString(message["@id"].asString()),
                         vedtaksperiodeId = vedtaksperiodeId,
                         fraTilstand = fraTilstand,
                         fordi = eventName,
