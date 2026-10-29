@@ -2224,6 +2224,10 @@ function merge(target, options) {
   if (options) {
     for (key in options) {
       if (options.hasOwnProperty(key)) {
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+          continue;
+        }
+
         var targetHasIt = target.hasOwnProperty(key),
             optionsValueType = typeof options[key],
             shouldReplace = !targetHasIt || (typeof target[key] !== optionsValueType);
